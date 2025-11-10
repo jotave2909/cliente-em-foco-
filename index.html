@@ -25,12 +25,10 @@
     .delete-btn { background-color: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-top: 5px; }
     .delete-btn:hover { background-color: #b91c1c; }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
   <header>Cliente em Foco</header>
   <button id="newClientBtn">+ Novo Cliente</button>
-  <button id="exportExcelBtn">📊 Exportar para Excel</button>
 
   <main>
     <div class="column" id="risco" ondrop="drop(event)" ondragover="allowDrop(event)">
@@ -98,8 +96,10 @@
   </div>
 
   <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzgVb1RRJ0ZfWo71FG_1IKSDLnjVXLAeeNCqQbI8hlKPhcaQMNpzYlla06GpRe4eNkj/exec";
+
     let draggedItem = null;
-    let clients = JSON.parse(localStorage.getItem('clients')) || [];
+    let clients = [];
     let editingId = null;
 
     function allowDrop(ev) { ev.preventDefault(); }
@@ -112,7 +112,6 @@
         const clientId = draggedItem.dataset.id;
         const client = clients.find(c => c.id == clientId);
         client.column = column.id;
-        saveLocal();
       }
     }
 
@@ -162,30 +161,39 @@
         column: 'duvidas'
       };
 
+      // Se estiver editando, atualiza localmente
       if (editingId) {
         const index = clients.findIndex(c => c.id == editingId);
         clientData.id = editingId;
         clients[index] = clientData;
-      } else {
-        clientData.id = Date.now();
-        clients.push(clientData);
+        renderClients();
+        closeModal();
+        return;
       }
 
-      saveLocal();
+      // Adiciona um id temporário
+      clientData.id = Date.now();
+
+      // Atualiza o site imediatamente
+      clients.push(clientData);
       renderClients();
       closeModal();
+
+      // Salva na planilha
+      fetch(`${SCRIPT_URL}?action=add`, {
+        method: 'POST',
+        body: JSON.stringify(clientData)
+      }).then(res => res.json())
+        .then(data => console.log("Salvo na planilha", data))
+        .catch(err => console.error(err));
     }
 
     function deleteClient(id) {
       if(confirm('Tem certeza que deseja excluir este cliente?')) {
         clients = clients.filter(c => c.id !== id);
-        saveLocal();
         renderClients();
+        // Opcional: aqui você pode chamar o Google Script para deletar da planilha
       }
-    }
-
-    function saveLocal() {
-      localStorage.setItem('clients', JSON.stringify(clients));
     }
 
     function toggleCard(id, event) {
@@ -244,46 +252,6 @@
     }
 
     renderClients();
-
-    document.getElementById("exportExcelBtn").addEventListener("click", function() {
-  if (clients.length === 0) {
-    alert("Não há clientes cadastrados para exportar.");
-    return;
-  }
-
-  // Define as colunas e os dados
-  const dados = [
-    ["Nome", "Integrantes", "Data Início", "Data Fim", "Tickets", "Observações", "Grupo", "Trativa", "Reunião", "Divergência Comercial", "Sistema Anterior", "Atraso Implantação", "Implantador", "Coluna"]
-  ];
-
-  clients.forEach(c => {
-    dados.push([
-      c.name || "",
-      c.members || "",
-      c.start || "",
-      c.end || "",
-      c.tickets ? c.tickets.replace(/\n/g, " ") : "",
-      c.observacoes || "",
-      c.grupo || "",
-      c.trativa || "",
-      c.reuniao || "",
-      c.divergenciaComercial || "",
-      c.sistemaanterior || "",
-      c.atrasoImplantacao || "",
-      c.implantador || "",
-      c.column || ""
-    ]);
-  });
-
-  // Cria a planilha
-  const ws = XLSX.utils.aoa_to_sheet(dados);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Clientes");
-
-  // Faz o download
-  XLSX.writeFile(wb, "clientes.xlsx");
-});
-
   </script>
 </body>
 </html>
