@@ -1,257 +1,239 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cliente em Foco</title>
-  <style>
-    body { font-family: Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
-    header { background-color: #2563eb; color: white; padding: 1rem; text-align: center; font-size: 1.5rem; }
-    main { display: flex; justify-content: space-around; padding: 1rem; }
-    .column { width: 30%; background-color: #e5e7eb; border-radius: 10px; padding: 10px; min-height: 400px; }
-    .column h2 { text-align: center; }
-    .card { background-color: white; border-radius: 10px; padding: 10px; margin-bottom: 10px; cursor: grab; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .card:hover { background-color: #f9fafb; }
-    .card-header { display: flex; justify-content: space-between; align-items: center; }
-    .toggle-btn, .edit-btn { background-color: #2563eb; color: white; border: none; border-radius: 5px; padding: 2px 8px; font-size: 0.75rem; cursor: pointer; margin-top: 5px; }
-    .toggle-btn:hover, .edit-btn:hover { background-color: #1d4ed8; }
-    .card-body { margin-top: 5px; }
-    #newClientBtn { margin: 10px; padding: 10px 15px; background-color: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    #newClientBtn:hover { background-color: #1d4ed8; }
-    #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center; }
-    #modalContent { background: white; padding: 20px; border-radius: 10px; width: 300px; max-height: 90%; overflow-y: auto; }
-    label { display: block; margin-top: 10px; }
-    input, select, textarea { width: 100%; padding: 5px; border-radius: 5px; border: 1px solid #ccc; }
-    .delete-btn { background-color: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-top: 5px; }
-    .delete-btn:hover { background-color: #b91c1c; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cliente em Foco</title>
+<style>
+  body { font-family: Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
+  header { background-color: #2563eb; color: white; padding: 1rem; text-align: center; font-size: 1.5rem; }
+  main { display: flex; justify-content: space-around; padding: 1rem; }
+  .column { width: 30%; background-color: #e5e7eb; border-radius: 10px; padding: 10px; min-height: 400px; }
+  .column h2 { text-align: center; margin-bottom: 5px; }
+  .column p { font-size: 0.8rem; color: #555; margin-bottom: 10px; text-align: center; }
+  .card { background-color: white; border-radius: 10px; padding: 10px; margin-bottom: 10px; cursor: grab; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+  .card:hover { background-color: #f9fafb; }
+  .card-block { background-color: #f9fafb; padding: 5px; border-radius: 5px; margin-bottom: 5px; }
+  .card-tags span { background-color: #e5e7eb; padding: 2px 5px; border-radius: 3px; margin-right: 3px; font-size: 0.75rem; }
+  #newClientBtn { margin: 10px; padding: 10px 15px; background-color: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; }
+  #newClientBtn:hover { background-color: #1d4ed8; }
+  #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center; }
+  #modalContent { background: white; padding: 20px; border-radius: 10px; width: 300px; max-height: 90%; overflow-y: auto; }
+  label { display: block; margin-top: 10px; }
+  input, select, textarea { width: 100%; padding: 5px; border-radius: 5px; border: 1px solid #ccc; }
+  .delete-btn { background-color: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+  .delete-btn:hover { background-color: #b91c1c; }
+</style>
 </head>
 <body>
-  <header>Cliente em Foco</header>
-  <button id="newClientBtn">+ Novo Cliente</button>
+<header>Cliente em Foco</header>
+<button id="newClientBtn">+ Novo Cliente</button>
 
-  <main>
-    <div class="column" id="risco" ondrop="drop(event)" ondragover="allowDrop(event)">
-      <h2>⚠️ Risco de Cancelamento</h2>
-      <p>Clientes que podem cancelar por pendências ou erros</p>
-    </div>
-    <div class="column" id="critico" ondrop="drop(event)" ondragover="allowDrop(event)">
-      <h2>❗ Crítico</h2>
-      <p>Clientes difíceis de lidar, com risco de conflito</p>
-    </div>
-    <div class="column" id="duvidas" ondrop="drop(event)" ondragover="allowDrop(event)">
-      <h2>ℹ️ Dúvidas</h2>
-      <p>Clientes com dúvidas ou implantação incompleta</p>
-    </div>
-  </main>
-
-  <div id="modal">
-    <div id="modalContent">
-      <h3 id="modalTitle">Novo Cliente</h3>
-      <label>Nome da Organização</label>
-      <input type="text" id="clientName">
-      <label>Integrantes</label>
-      <input type="text" id="clientMembers">
-      <label>Data de Início</label>
-      <input type="date" id="startDate">
-      <label>Data Final</label>
-      <input type="date" id="endDate">
-      <label>Tickets</label>
-      <textarea id="tickets"></textarea>
-      <label>Observações</label>
-      <textarea id="observacoes"></textarea>
-      <label>Grupo</label>
-      <textarea id="grupo"></textarea>
-      <label>Trativa</label>
-      <textarea id="trativa"></textarea>
-      <label>Marcada reunião?</label>
-      <select id="reuniao">
-        <option value="">Selecione</option>
-        <option value="Sim">Sim</option>
-        <option value="Não">Não</option>
-      </select>
-      <label>Houve divergência comercial?</label>
-      <select id="divergenciaComercial">
-        <option value="">Selecione</option>
-        <option value="Sim">Sim</option>
-        <option value="Não">Não</option>
-      </select>
-      <label>Teve sistema anterior?</label>
-      <select id="sistemaanterior">
-        <option value="">Selecione</option>
-        <option value="Sim">Sim</option>
-        <option value="Não">Não</option>
-      </select>
-      <label>Houve atraso na implantação?</label>
-      <select id="atrasoImplantacao">
-        <option value="">Selecione</option>
-        <option value="Sim">Sim</option>
-        <option value="Não">Não</option>
-      </select>
-      <label>Quem foi o implantador?</label>
-      <input type="text" id="implantador">
-      <button id="saveBtn">Salvar</button>
-      <button onclick="closeModal()">Cancelar</button>
-    </div>
+<main>
+  <div class="column" id="risco" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <h2>⚠️ Risco de Cancelamento</h2>
+    <p>Clientes que podem cancelar por pendências ou erros</p>
   </div>
+  <div class="column" id="critico" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <h2>❗ Crítico</h2>
+    <p>Clientes difíceis de lidar, com risco de conflito</p>
+  </div>
+  <div class="column" id="duvidas" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <h2>ℹ️ Dúvidas</h2>
+    <p>Clientes com dúvidas ou implantação incompleta</p>
+  </div>
+</main>
 
-  <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzgVb1RRJ0ZfWo71FG_1IKSDLnjVXLAeeNCqQbI8hlKPhcaQMNpzYlla06GpRe4eNkj/exec";
+<div id="modal">
+  <div id="modalContent">
+    <h3 id="modalTitle">Novo Cliente</h3>
+    <label>Nome da Organização</label>
+    <input type="text" id="clientName">
 
-    let draggedItem = null;
-    let clients = [];
-    let editingId = null;
+    <label>Integrantes</label>
+    <input type="text" id="clientMembers">
 
-    function allowDrop(ev) { ev.preventDefault(); }
-    function drag(ev) { draggedItem = ev.target; }
-    function drop(ev) {
-      ev.preventDefault();
-      const column = ev.target.closest('.column');
-      if (column && draggedItem) {
-        column.appendChild(draggedItem);
-        const clientId = draggedItem.dataset.id;
-        const client = clients.find(c => c.id == clientId);
-        client.column = column.id;
-      }
+    <label>Data de Início</label>
+    <input type="date" id="startDate">
+
+    <label>Data Final</label>
+    <input type="date" id="endDate">
+
+    <label>Tickets</label>
+    <textarea id="tickets"></textarea>
+
+    <label>Houve divergência comercial?</label>
+    <select id="divergenciaComercial">
+      <option value="">Selecione</option>
+      <option value="Sim">Sim</option>
+      <option value="Não">Não</option>
+    </select>
+
+    <label>Teve sistema anterior?</label>
+    <select id="sistemaanterior">
+      <option value="">Selecione</option>
+      <option value="Sim">Sim</option>
+      <option value="Não">Não</option>
+    </select>
+
+    <label>Houve atraso na implantação?</label>
+    <select id="atrasoImplantacao">
+      <option value="">Selecione</option>
+      <option value="Sim">Sim</option>
+      <option value="Não">Não</option>
+    </select>
+
+    <label>Quem foi o implantador?</label>
+    <input type="text" id="implantador">
+
+    <label>Observações</label>
+    <textarea id="observacoes"></textarea>
+
+    <label>Trativa</label>
+    <textarea id="trativa"></textarea>
+
+    <button type="button" id="saveBtn">Salvar</button>
+    <button type="button" onclick="closeModal()">Cancelar</button>
+  </div>
+</div>
+
+<script>
+let draggedItem = null;
+let clients = JSON.parse(localStorage.getItem('clients')) || [];
+let editingId = null;
+
+function allowDrop(ev) { ev.preventDefault(); }
+function drag(ev) { draggedItem = ev.target; }
+function drop(ev) {
+  ev.preventDefault();
+  const column = ev.target.closest('.column');
+  if (column && draggedItem) {
+    column.appendChild(draggedItem);
+    const clientId = draggedItem.dataset.id;
+    const client = clients.find(c => c.id == clientId);
+    client.column = column.id;
+    saveLocal();
+  }
+}
+
+document.getElementById('newClientBtn').addEventListener('click', () => openModal());
+document.getElementById('saveBtn').addEventListener('click', saveClient);
+
+function openModal(client = null) {
+  document.getElementById('modal').style.display = 'flex';
+  editingId = client ? client.id : null;
+  document.getElementById('modalTitle').innerText = client ? 'Editar Cliente' : 'Novo Cliente';
+  document.getElementById('clientName').value = client ? client.name : '';
+  document.getElementById('clientMembers').value = client ? client.members : '';
+  document.getElementById('startDate').value = client ? client.start : '';
+  document.getElementById('endDate').value = client ? client.end : '';
+  document.getElementById('tickets').value = client ? client.tickets : '';
+  document.getElementById('divergenciaComercial').value = client ? client.divergenciaComercial : '';
+  document.getElementById('sistemaanterior').value = client ? client.sistemaanterior : '';
+  document.getElementById('atrasoImplantacao').value = client ? client.atrasoImplantacao : '';
+  document.getElementById('implantador').value = client ? client.implantador : '';
+  document.getElementById('observacoes').value = client ? client.observacoes : '';
+  document.getElementById('trativa').value = client ? client.trativa : '';
+}
+
+function closeModal() {
+  document.getElementById('modal').style.display = 'none';
+  editingId = null;
+}
+
+function saveClient() {
+  const name = document.getElementById('clientName').value.trim();
+  if (!name) { alert('Preencha o nome da organização'); return; }
+
+  const clientData = {
+    name: name,
+    members: document.getElementById('clientMembers').value,
+    start: document.getElementById('startDate').value,
+    end: document.getElementById('endDate').value,
+    tickets: document.getElementById('tickets').value,
+    divergenciaComercial: document.getElementById('divergenciaComercial').value,
+    sistemaanterior: document.getElementById('sistemaanterior').value,
+    atrasoImplantacao: document.getElementById('atrasoImplantacao').value,
+    implantador: document.getElementById('implantador').value,
+    observacoes: document.getElementById('observacoes').value,
+    trativa: document.getElementById('trativa').value,
+    column: 'duvidas'
+  };
+
+  if (editingId) {
+    const clientIndex = clients.findIndex(c => c.id == editingId);
+    if (clientIndex > -1) {
+      clientData.id = editingId;
+      clients[clientIndex] = clientData;
     }
+  } else {
+    clientData.id = Date.now();
+    clients.push(clientData);
+  }
 
-    document.getElementById('newClientBtn').addEventListener('click', () => openModal());
+  saveLocal();
+  renderClients();
+  closeModal();
+}
 
-    function openModal(client = null) {
-      document.getElementById('modal').style.display = 'flex';
-      editingId = client ? client.id : null;
-      document.getElementById('modalTitle').innerText = client ? 'Editar Cliente' : 'Novo Cliente';
-      document.getElementById('clientName').value = client ? client.name : '';
-      document.getElementById('clientMembers').value = client ? client.members : '';
-      document.getElementById('startDate').value = client ? client.start : '';
-      document.getElementById('endDate').value = client ? client.end : '';
-      document.getElementById('tickets').value = client ? client.tickets : '';
-      document.getElementById('divergenciaComercial').value = client ? client.divergenciaComercial : '';
-      document.getElementById('reuniao').value = client ? client.reuniao : '';
-      document.getElementById('sistemaanterior').value = client ? client.sistemaanterior : '';
-      document.getElementById('atrasoImplantacao').value = client ? client.atrasoImplantacao : '';
-      document.getElementById('implantador').value = client ? client.implantador : '';
-      document.getElementById('observacoes').value = client ? client.observacoes : '';
-      document.getElementById('trativa').value = client ? client.trativa : '';
-      document.getElementById('grupo').value = client ? client.grupo : '';
-    }
-
-    function closeModal() {
-      document.getElementById('modal').style.display = 'none';
-      editingId = null;
-    }
-
-    document.getElementById('saveBtn').addEventListener('click', saveClient);
-
-    function saveClient() {
-      const clientData = {
-        name: document.getElementById('clientName').value,
-        members: document.getElementById('clientMembers').value,
-        start: document.getElementById('startDate').value,
-        end: document.getElementById('endDate').value,
-        tickets: document.getElementById('tickets').value,
-        divergenciaComercial: document.getElementById('divergenciaComercial').value,
-        reuniao: document.getElementById('reuniao').value,
-        sistemaanterior: document.getElementById('sistemaanterior').value,
-        atrasoImplantacao: document.getElementById('atrasoImplantacao').value,
-        implantador: document.getElementById('implantador').value,
-        observacoes: document.getElementById('observacoes').value,
-        trativa: document.getElementById('trativa').value,
-        grupo: document.getElementById('grupo').value,
-        column: 'duvidas'
-      };
-
-      // Se estiver editando, atualiza localmente
-      if (editingId) {
-        const index = clients.findIndex(c => c.id == editingId);
-        clientData.id = editingId;
-        clients[index] = clientData;
-        renderClients();
-        closeModal();
-        return;
-      }
-
-      // Adiciona um id temporário
-      clientData.id = Date.now();
-
-      // Atualiza o site imediatamente
-      clients.push(clientData);
-      renderClients();
-      closeModal();
-
-      // Salva na planilha
-      fetch(`${SCRIPT_URL}?action=add`, {
-        method: 'POST',
-        body: JSON.stringify(clientData)
-      }).then(res => res.json())
-        .then(data => console.log("Salvo na planilha", data))
-        .catch(err => console.error(err));
-    }
-
-    function deleteClient(id) {
-      if(confirm('Tem certeza que deseja excluir este cliente?')) {
-        clients = clients.filter(c => c.id !== id);
-        renderClients();
-        // Opcional: aqui você pode chamar o Google Script para deletar da planilha
-      }
-    }
-
-    function toggleCard(id, event) {
-      event.stopPropagation();
-      const body = document.getElementById(`card-body-${id}`);
-      const btn = event.target;
-      if (body.style.display === 'none') {
-        body.style.display = 'block';
-        btn.innerText = 'Mostrar Menos';
-      } else {
-        body.style.display = 'none';
-        btn.innerText = 'Mostrar Mais';
-      }
-    }
-
-    function renderClients() {
-      const colNames = { risco: '⚠️ Risco de Cancelamento', critico: '❗ Crítico', duvidas: 'ℹ️ Dúvidas' };
-      const colDescriptions = { risco: 'Clientes que podem cancelar por pendências ou erros', critico: 'Clientes difíceis de lidar, com risco de conflito', duvidas: 'Clientes com dúvidas ou implantação incompleta' };
-
-      ['risco','critico','duvidas'].forEach(col => {
-        const columnEl = document.getElementById(col);
-        columnEl.innerHTML = `<h2>${colNames[col]}</h2><p style="font-size:0.8rem; color:#555;">${colDescriptions[col]}</p>`;
-      });
-
-      clients.forEach(client => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.draggable = true;
-        card.dataset.id = client.id;
-        card.ondragstart = drag;
-
-        card.innerHTML = `
-          <div class="card-header">
-            <strong>${client.name}</strong>
-            <button class="toggle-btn" onclick="toggleCard(${client.id}, event)">Mostrar Mais</button>
-          </div>
-          <div class="card-body" id="card-body-${client.id}" style="display:none;">
-            Integrantes: ${client.members}<br>
-            Início: ${client.start}<br>
-            Fim: ${client.end}<br>
-            <strong>Grupo:</strong> ${client.grupo || ''}<br>
-            <strong>Tickets:</strong><br> ${client.tickets.replace(/\n/g,'<br>')}<br>
-            <strong>Observações:</strong> ${client.observacoes || ''}<br>
-            <strong>Trativa:</strong> ${client.trativa || ''}<br>
-            <strong>Divergência comercial:</strong> ${client.divergenciaComercial || '-'}<br>
-            <strong>Marcada Reunião:</strong> ${client.reuniao || ''}<br>
-            <strong>Sistema Anterior:</strong> ${client.sistemaanterior || '-'}<br>
-            <strong>Atraso implantação:</strong> ${client.atrasoImplantacao || '-'}<br>
-            <strong>Implantador:</strong> ${client.implantador || '-'}<br>
-            <button class='delete-btn' onclick='event.stopPropagation(); deleteClient(${client.id})'>Excluir Cliente</button>
-            <button class='edit-btn' onclick='event.stopPropagation(); openModal(clients.find(c => c.id == ${client.id}))'>Editar</button>
-          </div>
-        `;
-        document.getElementById(client.column).appendChild(card);
-      });
-    }
-
+function deleteClient(id) {
+  if(confirm('Tem certeza que deseja excluir este cliente?')) {
+    clients = clients.filter(c => c.id !== id);
+    saveLocal();
     renderClients();
-  </script>
+  }
+}
+
+function saveLocal() {
+  localStorage.setItem('clients', JSON.stringify(clients));
+}
+
+function renderClients() {
+  const colNames = {
+    risco: '⚠️ Risco de Cancelamento',
+    critico: '❗ Crítico',
+    duvidas: 'ℹ️ Dúvidas'
+  };
+  const colDescriptions = {
+    risco: 'Clientes que podem cancelar por pendências ou erros',
+    critico: 'Clientes difíceis de lidar, com risco de conflito',
+    duvidas: 'Clientes com dúvidas ou implantação incompleta'
+  };
+
+  ['risco','critico','duvidas'].forEach(col => {
+    const columnEl = document.getElementById(col);
+    columnEl.innerHTML = `<h2>${colNames[col]}</h2><p>${colDescriptions[col]}</p>`;
+  });
+
+  clients.forEach(client => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.draggable = true;
+    card.dataset.id = client.id;
+    card.ondragstart = drag;
+    card.onclick = () => openModal(client);
+
+    let tagsHtml = '';
+    if(client.divergenciaComercial === 'Sim') tagsHtml += `<span>Divergência</span>`;
+    if(client.sistemaanterior === 'Sim') tagsHtml += `<span>Sistema Anterior</span>`;
+    if(client.atrasoImplantacao === 'Sim') tagsHtml += `<span>Atraso</span>`;
+
+    card.innerHTML = `
+      <strong>${client.name}</strong><br>
+      Integrantes: ${client.members}<br>
+      Início: ${client.start} | Fim: ${client.end}<br>
+      <div class="card-block"><strong>🎫 Tickets:</strong><br>${client.tickets.replace(/\n/g,'<br>')}</div>
+      <div class="card-tags">${tagsHtml}</div>
+      <div class="card-block"><strong>📝 Observações:</strong><br>${client.observacoes.replace(/\n/g,'<br>') || '-'}</div>
+      <div class="card-block"><strong>💡 Trativa:</strong><br>${client.trativa.replace(/\n/g,'<br>') || '-'}</div>
+      Implantador: ${client.implantador || '-'}<br>
+      <button class='delete-btn' onclick='event.stopPropagation(); deleteClient(${client.id})'>Excluir Cliente</button>
+    `;
+    document.getElementById(client.column).appendChild(card);
+  });
+}
+
+renderClients();
+</script>
 </body>
 </html>
