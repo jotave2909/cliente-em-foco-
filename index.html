@@ -25,10 +25,12 @@
     .delete-btn { background-color: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-top: 5px; }
     .delete-btn:hover { background-color: #b91c1c; }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
   <header>Cliente em Foco</header>
   <button id="newClientBtn">+ Novo Cliente</button>
+  <button id="exportExcelBtn">📊 Exportar para Excel</button>
 
   <main>
     <div class="column" id="risco" ondrop="drop(event)" ondragover="allowDrop(event)">
@@ -242,6 +244,46 @@
     }
 
     renderClients();
+
+    document.getElementById("exportExcelBtn").addEventListener("click", function() {
+  if (clients.length === 0) {
+    alert("Não há clientes cadastrados para exportar.");
+    return;
+  }
+
+  // Define as colunas e os dados
+  const dados = [
+    ["Nome", "Integrantes", "Data Início", "Data Fim", "Tickets", "Observações", "Grupo", "Trativa", "Reunião", "Divergência Comercial", "Sistema Anterior", "Atraso Implantação", "Implantador", "Coluna"]
+  ];
+
+  clients.forEach(c => {
+    dados.push([
+      c.name || "",
+      c.members || "",
+      c.start || "",
+      c.end || "",
+      c.tickets ? c.tickets.replace(/\n/g, " ") : "",
+      c.observacoes || "",
+      c.grupo || "",
+      c.trativa || "",
+      c.reuniao || "",
+      c.divergenciaComercial || "",
+      c.sistemaanterior || "",
+      c.atrasoImplantacao || "",
+      c.implantador || "",
+      c.column || ""
+    ]);
+  });
+
+  // Cria a planilha
+  const ws = XLSX.utils.aoa_to_sheet(dados);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Clientes");
+
+  // Faz o download
+  XLSX.writeFile(wb, "clientes.xlsx");
+});
+
   </script>
 </body>
 </html>
