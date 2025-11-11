@@ -2,238 +2,229 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cliente em Foco</title>
 <style>
-  body { font-family: Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
-  header { background-color: #2563eb; color: white; padding: 1rem; text-align: center; font-size: 1.5rem; }
-  main { display: flex; justify-content: space-around; padding: 1rem; }
-  .column { width: 30%; background-color: #e5e7eb; border-radius: 10px; padding: 10px; min-height: 400px; }
-  .column h2 { text-align: center; margin-bottom: 5px; }
-  .column p { font-size: 0.8rem; color: #555; margin-bottom: 10px; text-align: center; }
-  .card { background-color: white; border-radius: 10px; padding: 10px; margin-bottom: 10px; cursor: grab; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-  .card:hover { background-color: #f9fafb; }
-  .card-block { background-color: #f9fafb; padding: 5px; border-radius: 5px; margin-bottom: 5px; }
-  .card-tags span { background-color: #e5e7eb; padding: 2px 5px; border-radius: 3px; margin-right: 3px; font-size: 0.75rem; }
-  #newClientBtn { margin: 10px; padding: 10px 15px; background-color: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; }
-  #newClientBtn:hover { background-color: #1d4ed8; }
-  #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center; }
-  #modalContent { background: white; padding: 20px; border-radius: 10px; width: 300px; max-height: 90%; overflow-y: auto; }
-  label { display: block; margin-top: 10px; }
-  input, select, textarea { width: 100%; padding: 5px; border-radius: 5px; border: 1px solid #ccc; }
-  .delete-btn { background-color: #dc2626; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-top: 10px; }
-  .delete-btn:hover { background-color: #b91c1c; }
+  body { font-family: Arial; background: #f3f4f6; margin:0; padding:0; }
+  header { background:#2563eb; color:white; padding:1rem; text-align:center; font-size:1.5rem; }
+  main { display:flex; justify-content:space-around; padding:1rem; flex-wrap:wrap; }
+  .column { width:30%; background:#e5e7eb; border-radius:10px; padding:10px; min-height:400px; margin-bottom:10px; }
+  .card { background:white; border-radius:10px; padding:10px; margin-bottom:10px; box-shadow:0 2px 4px rgba(0,0,0,0.1); cursor:grab; }
+  #newClientBtn { margin:10px; padding:10px 15px; background:#2563eb; color:white; border:none; border-radius:5px; cursor:pointer; }
+  #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; }
+  #modalContent { background:white; padding:20px; border-radius:10px; width:300px; max-height:90%; overflow-y:auto; }
+  label,input,select,textarea { display:block; width:100%; margin-top:10px; padding:5px; border-radius:5px; border:1px solid #ccc; }
+  #status { text-align:center; margin:10px; font-size:0.9rem; }
 </style>
 </head>
 <body>
+
 <header>Cliente em Foco</header>
 <button id="newClientBtn">+ Novo Cliente</button>
+<div id="status"></div>
 
 <main>
-  <div class="column" id="risco" ondrop="drop(event)" ondragover="allowDrop(event)">
-    <h2>⚠️ Risco de Cancelamento</h2>
-    <p>Clientes que podem cancelar por pendências ou erros</p>
-  </div>
-  <div class="column" id="critico" ondrop="drop(event)" ondragover="allowDrop(event)">
-    <h2>❗ Crítico</h2>
-    <p>Clientes difíceis de lidar, com risco de conflito</p>
-  </div>
-  <div class="column" id="duvidas" ondrop="drop(event)" ondragover="allowDrop(event)">
-    <h2>ℹ️ Dúvidas</h2>
-    <p>Clientes com dúvidas ou implantação incompleta</p>
-  </div>
+  <div class="column" id="risco"><h2>⚠️ Risco</h2></div>
+  <div class="column" id="critico"><h2>❗ Crítico</h2></div>
+  <div class="column" id="duvidas"><h2>ℹ️ Dúvidas</h2></div>
 </main>
 
 <div id="modal">
   <div id="modalContent">
-    <h3 id="modalTitle">Novo Cliente</h3>
-    <label>Nome da Organização</label>
-    <input type="text" id="clientName">
-
-    <label>Integrantes</label>
-    <input type="text" id="clientMembers">
-
-    <label>Data de Início</label>
-    <input type="date" id="startDate">
-
-    <label>Data Final</label>
-    <input type="date" id="endDate">
-
-    <label>Tickets</label>
-    <textarea id="tickets"></textarea>
-
-    <label>Houve divergência comercial?</label>
-    <select id="divergenciaComercial">
-      <option value="">Selecione</option>
-      <option value="Sim">Sim</option>
-      <option value="Não">Não</option>
-    </select>
-
-    <label>Teve sistema anterior?</label>
-    <select id="sistemaanterior">
-      <option value="">Selecione</option>
-      <option value="Sim">Sim</option>
-      <option value="Não">Não</option>
-    </select>
-
-    <label>Houve atraso na implantação?</label>
-    <select id="atrasoImplantacao">
-      <option value="">Selecione</option>
-      <option value="Sim">Sim</option>
-      <option value="Não">Não</option>
-    </select>
-
-    <label>Quem foi o implantador?</label>
-    <input type="text" id="implantador">
-
-    <label>Observações</label>
-    <textarea id="observacoes"></textarea>
-
-    <label>Trativa</label>
-    <textarea id="trativa"></textarea>
-
-    <button type="button" id="saveBtn">Salvar</button>
-    <button type="button" onclick="closeModal()">Cancelar</button>
+    <h3>Novo Cliente</h3>
+    <input type="text" id="name" placeholder="Nome da Organização">
+    <input type="text" id="members" placeholder="Integrantes">
+    <input type="date" id="start">
+    <input type="date" id="end">
+    <textarea id="tickets" placeholder="Tickets"></textarea>
+    <select id="divergenciaComercial"><option value="">Divergência Comercial?</option><option>Sim</option><option>Não</option></select>
+    <select id="sistemaAnterior"><option value="">Sistema Anterior?</option><option>Sim</option><option>Não</option></select>
+    <select id="atrasoImplantacao"><option value="">Atraso na Implantação?</option><option>Sim</option><option>Não</option></select>
+    <input type="text" id="implantador" placeholder="Implantador">
+    <textarea id="observacoes" placeholder="Observações"></textarea>
+    <textarea id="tratativa" placeholder="Tratativa"></textarea>
+    <button onclick="saveClient()">Salvar</button>
+    <button onclick="closeModal()">Cancelar</button>
   </div>
 </div>
 
 <script>
-let draggedItem = null;
-let clients = JSON.parse(localStorage.getItem('clients')) || [];
-let editingId = null;
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCZVWXX6E32WR6SuKG0Q-CL4UMhViWWiRCCiTkzl8QtNfTchpYEsbY5-ci98QN5vxsUA/exec";
 
-function allowDrop(ev) { ev.preventDefault(); }
-function drag(ev) { draggedItem = ev.target; }
-function drop(ev) {
-  ev.preventDefault();
-  const column = ev.target.closest('.column');
-  if (column && draggedItem) {
-    column.appendChild(draggedItem);
-    const clientId = draggedItem.dataset.id;
-    const client = clients.find(c => c.id == clientId);
-    client.column = column.id;
-    saveLocal();
+async function loadClients() {
+  try {
+    const res = await fetch(SCRIPT_URL);
+    if (!res.ok) throw new Error("Erro ao acessar Web App");
+    clients = await res.json();
+    renderClients();
+  } catch(err) {
+    console.error(err);
+    showStatus("Erro ao carregar clientes", "red");
   }
 }
 
-document.getElementById('newClientBtn').addEventListener('click', () => openModal());
-document.getElementById('saveBtn').addEventListener('click', saveClient);
 
-function openModal(client = null) {
-  document.getElementById('modal').style.display = 'flex';
-  editingId = client ? client.id : null;
-  document.getElementById('modalTitle').innerText = client ? 'Editar Cliente' : 'Novo Cliente';
-  document.getElementById('clientName').value = client ? client.name : '';
-  document.getElementById('clientMembers').value = client ? client.members : '';
-  document.getElementById('startDate').value = client ? client.start : '';
-  document.getElementById('endDate').value = client ? client.end : '';
-  document.getElementById('tickets').value = client ? client.tickets : '';
-  document.getElementById('divergenciaComercial').value = client ? client.divergenciaComercial : '';
-  document.getElementById('sistemaanterior').value = client ? client.sistemaanterior : '';
-  document.getElementById('atrasoImplantacao').value = client ? client.atrasoImplantacao : '';
-  document.getElementById('implantador').value = client ? client.implantador : '';
-  document.getElementById('observacoes').value = client ? client.observacoes : '';
-  document.getElementById('trativa').value = client ? client.trativa : '';
+function showStatus(msg, color="black"){
+  const el = document.getElementById("status");
+  el.innerText = msg;
+  el.style.color = color;
+  setTimeout(()=> el.innerText="", 3000);
 }
 
-function closeModal() {
-  document.getElementById('modal').style.display = 'none';
-  editingId = null;
-}
+function openModal(){ document.getElementById("modal").style.display="flex"; }
+function closeModal(){ document.getElementById("modal").style.display="none"; }
 
 function saveClient() {
-  const name = document.getElementById('clientName').value.trim();
-  if (!name) { alert('Preencha o nome da organização'); return; }
-
   const clientData = {
-    name: name,
-    members: document.getElementById('clientMembers').value,
-    start: document.getElementById('startDate').value,
-    end: document.getElementById('endDate').value,
-    tickets: document.getElementById('tickets').value,
-    divergenciaComercial: document.getElementById('divergenciaComercial').value,
-    sistemaanterior: document.getElementById('sistemaanterior').value,
-    atrasoImplantacao: document.getElementById('atrasoImplantacao').value,
-    implantador: document.getElementById('implantador').value,
-    observacoes: document.getElementById('observacoes').value,
-    trativa: document.getElementById('trativa').value,
-    column: 'duvidas'
+    id: Date.now(),
+    name: document.getElementById("name").value,
+    members: document.getElementById("members").value,
+    start: document.getElementById("start").value,
+    end: document.getElementById("end").value,
+    tickets: document.getElementById("tickets").value,
+    divergenciaComercial: document.getElementById("divergenciaComercial").value,
+    sistemaAnterior: document.getElementById("sistemaAnterior").value,
+    atrasoImplantacao: document.getElementById("atrasoImplantacao").value,
+    implantador: document.getElementById("implantador").value,
+    observacoes: document.getElementById("observacoes").value,
+    tratativa: document.getElementById("tratativa").value,
+    coluna: "duvidas"
   };
 
-  if (editingId) {
-    const clientIndex = clients.findIndex(c => c.id == editingId);
-    if (clientIndex > -1) {
-      clientData.id = editingId;
-      clients[clientIndex] = clientData;
+  showStatus("Salvando...", "blue");
+
+  const formData = new FormData();
+  formData.append("client", JSON.stringify(clientData));
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    body: formData
+  })
+  .then(res => res.json())
+  .then(json => {
+    if (json.status === "ok") {
+      showStatus("Salvo com sucesso ✅", "green");
+      loadClients();
+      closeModal();
+    } else {
+      showStatus("Erro ao salvar", "red");
     }
-  } else {
-    clientData.id = Date.now();
-    clients.push(clientData);
-  }
-
-  saveLocal();
-  renderClients();
-  closeModal();
-}
-
-function deleteClient(id) {
-  if(confirm('Tem certeza que deseja excluir este cliente?')) {
-    clients = clients.filter(c => c.id !== id);
-    saveLocal();
-    renderClients();
-  }
-}
-
-function saveLocal() {
-  localStorage.setItem('clients', JSON.stringify(clients));
-}
-
-function renderClients() {
-  const colNames = {
-    risco: '⚠️ Risco de Cancelamento',
-    critico: '❗ Crítico',
-    duvidas: 'ℹ️ Dúvidas'
-  };
-  const colDescriptions = {
-    risco: 'Clientes que podem cancelar por pendências ou erros',
-    critico: 'Clientes difíceis de lidar, com risco de conflito',
-    duvidas: 'Clientes com dúvidas ou implantação incompleta'
-  };
-
-  ['risco','critico','duvidas'].forEach(col => {
-    const columnEl = document.getElementById(col);
-    columnEl.innerHTML = `<h2>${colNames[col]}</h2><p>${colDescriptions[col]}</p>`;
-  });
-
-  clients.forEach(client => {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.draggable = true;
-    card.dataset.id = client.id;
-    card.ondragstart = drag;
-    card.onclick = () => openModal(client);
-
-    let tagsHtml = '';
-    if(client.divergenciaComercial === 'Sim') tagsHtml += `<span>Divergência</span>`;
-    if(client.sistemaanterior === 'Sim') tagsHtml += `<span>Sistema Anterior</span>`;
-    if(client.atrasoImplantacao === 'Sim') tagsHtml += `<span>Atraso</span>`;
-
-    card.innerHTML = `
-      <strong>${client.name}</strong><br>
-      Integrantes: ${client.members}<br>
-      Início: ${client.start} | Fim: ${client.end}<br>
-      <div class="card-block"><strong>🎫 Tickets:</strong><br>${client.tickets.replace(/\n/g,'<br>')}</div>
-      <div class="card-tags">${tagsHtml}</div>
-      <div class="card-block"><strong>📝 Observações:</strong><br>${client.observacoes.replace(/\n/g,'<br>') || '-'}</div>
-      <div class="card-block"><strong>💡 Trativa:</strong><br>${client.trativa.replace(/\n/g,'<br>') || '-'}</div>
-      Implantador: ${client.implantador || '-'}<br>
-      <button class='delete-btn' onclick='event.stopPropagation(); deleteClient(${client.id})'>Excluir Cliente</button>
-    `;
-    document.getElementById(client.column).appendChild(card);
+  })
+  .catch(err => {
+    console.error(err);
+    showStatus("Erro de conexão", "red");
   });
 }
 
-renderClients();
+
+function loadClients() {
+  fetch(SCRIPT_URL)
+    .then(async res => {
+      const contentType = res.headers.get("content-type");
+      const raw = await res.text();
+      console.log("Resposta bruta:", raw);
+
+      if (!contentType || !contentType.includes("application/json")) {
+        showStatus("Resposta não é JSON", "red");
+        throw new Error("Resposta não é JSON");
+      }
+
+      let data;
+      try {
+        data = JSON.parse(raw);
+      } catch (err) {
+        console.error("Erro ao interpretar JSON:", err);
+        showStatus("Erro ao interpretar resposta", "red");
+        return;
+      }
+
+      if (!Array.isArray(data)) {
+        console.error("Resposta não é um array:", data);
+        showStatus("Formato de dados inválido", "red");
+        return;
+      }
+
+      clients = data;
+      renderClients();
+    })
+    .catch(err => {
+      console.error("Erro ao carregar clientes:", err);
+      showStatus("Erro ao carregar clientes", "red");
+    });
+}
+
+
+
+
+
+function allowDrop(ev){ ev.preventDefault(); }
+function drag(ev){ draggedItem = ev.target; }
+
+function drop(ev){
+  ev.preventDefault();
+  const column = ev.target.closest('.column');
+  if(column && draggedItem){
+    column.appendChild(draggedItem);
+    const clientId = draggedItem.dataset.id;
+    const client = clients.find(c=>c.id==clientId);
+    if(!client) return;
+    client.coluna = column.id;
+
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ client })
+    })
+    .then(res => res.json())
+    .then(json => {
+      if(json.status === "ok") {
+        showStatus("Movido com sucesso ✅", "green");
+        loadClients();
+      } else {
+        showStatus("Erro ao mover", "red");
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      showStatus("Erro ao mover", "red");
+    });
+  }
+}
+
+function renderClients(){
+  const colNames = { risco:'⚠️ Risco', critico:'❗ Crítico', duvidas:'ℹ️ Dúvidas' };
+  const colDesc  = { risco:'Clientes que podem cancelar', critico:'Clientes difíceis', duvidas:'Clientes com dúvidas ou implantação incompleta' };
+
+  ["risco","critico","duvidas"].forEach(col=>{
+    const column = document.getElementById(col);
+    column.innerHTML = `<h2>${colNames[col]}</h2><p>${colDesc[col]}</p>`;
+  });
+
+  clients.forEach(client=>{
+    if(!client || !client.id) return;
+    const card = document.createElement("div");
+    card.className="card";
+    card.draggable=true;
+    card.dataset.id=client.id;
+    card.ondragstart=drag;
+    card.innerHTML=`<strong>${client.name}</strong><br>
+      Integrantes: ${client.members||"-"}<br>
+      Início: ${client.start||"-"} | Fim: ${client.end||"-"}<br>
+      <div><strong>Tickets:</strong><br>${client.tickets||"-"}</div>
+      <div><strong>Observações:</strong><br>${client.observacoes||"-"}</div>
+      <div><strong>Tratativa:</strong><br>${client.tratativa||"-"}</div>
+      Implantador: ${client.implantador||"-"}`;
+    document.getElementById(client.coluna||"duvidas").appendChild(card);
+  });
+}
+
+document.getElementById("newClientBtn").addEventListener("click",openModal);
+document.querySelectorAll(".column").forEach(col=>{
+  col.addEventListener("dragover",allowDrop);
+  col.addEventListener("drop",drop);
+});
+
+loadClients();
 </script>
+
 </body>
 </html>
