@@ -117,7 +117,6 @@
     word-wrap: break-word;
     overflow-wrap: break-word;
   }
-  
 
   .card .details { display: none; }
   .card.dragging { opacity: 0.5; }
@@ -201,6 +200,7 @@
       <input type="file" id="excelFile" accept=".xlsx, .xls" style="display:none;">
       <button onclick="importExcel()" style="background:#2563eb; color:white; padding:8px 12px; border:none; border-radius:5px;">Importar Excel</button>
       <button onclick="exportClientesToCSV()" style="background:#2563eb; color:white; padding:8px 12px; border:none; border-radius:5px;">Exportar CSV</button>
+      <button onclick="deleteAllClients()" style="background:#f44336; color:white; padding:8px 12px; border:none; border-radius:5px;">Apagar todos</button>
     </div>
 
     <div style="text-align:center; margin-bottom:10px;">
@@ -254,7 +254,7 @@
 </div>
 
 <script>
-let clients = JSON.parse(localStorage.getItem("kanbanClients") || "[]")
+let clients = JSON.parse(localStorage.getItem("kanbanClients") || "[]");
 let editingClient = null;
 let currentIsCard = true;
 
@@ -264,31 +264,83 @@ function showModule(module){
   renderKanban(); renderClientes();
 }
 
+// Exportar clientes do módulo Clientes
+function exportClientesToCSV() {
+  if(clients.length === 0){ alert("Não há clientes para exportar!"); return; }
+  let csv = "Organização,Integrantes,Data de início,Data Go live,Tickets,Observações,Tratativa,Reunião marcada?,Data reunião,Divergência Comercial?,Atraso implantação?,Implantador,Coluna\n";
+  clients.forEach(c=>{
+    const row = [
+      c.clientName,
+      c.clientMembers,
+      c.clientStart,
+      c.clientEnd,
+      c.clientTickets,
+      c.clientObservacoes,
+      c.clientTratativa,
+      c.clientReuniao,
+      c.clientDataReuniao,
+      c.clientDivergenciaComercial,
+      c.clientAtrasoImplantacao,
+      c.clientImplantador,
+      c.clientColuna
+    ];
+    csv += row.map(v=>`"${v.replace(/"/g,'""')}"`).join(",") + "\n";
+  });
+  const blob = new Blob([csv], {type: "text/csv;charset=utf-8"});
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "clientes.csv";
+  link.click();
+}
+
+// Exportar cards do Kanban (apenas os clientes que estão em alguma coluna)
+function exportKanbanToCSV() {
+  const cards = clients.filter(c=>c.clientColuna);
+  if(cards.length === 0){ alert("Não há cards para exportar!"); return; }
+  let csv = "Organização,Integrantes,Data de início,Data Go live,Tickets,Observações,Tratativa,Reunião marcada?,Data reunião,Divergência Comercial?,Atraso implantação?,Implantador,Coluna\n";
+  cards.forEach(c=>{
+    const row = [
+      c.clientName,
+      c.clientMembers,
+      c.clientStart,
+      c.clientEnd,
+      c.clientTickets,
+      c.clientObservacoes,
+      c.clientTratativa,
+      c.clientReuniao,
+      c.clientDataReuniao,
+      c.clientDivergenciaComercial,
+      c.clientAtrasoImplantacao,
+      c.clientImplantador,
+      c.clientColuna
+    ];
+    csv += row.map(v=>`"${v.replace(/"/g,'""')}"`).join(",") + "\n";
+  });
+  const blob = new Blob([csv], {type: "text/csv;charset=utf-8"});
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "kanban.csv";
+  link.click();
+}
+
+
 function importExcel() {
   const fileInput = document.getElementById("excelFile");
   const file = fileInput.files[0];
-  if (!file) {
-    alert("Escolha um arquivo Excel primeiro.");
-    return;
-  }
+  if (!file) { alert("Escolha um arquivo Excel primeiro."); return; }
 
   const reader = new FileReader();
   reader.onload = function(e) {
     const data = new Uint8Array(e.target.result);
     const workbook = XLSX.read(data, { type: "array" });
-
-    // Pegando a primeira aba
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
-
-    // Converte para JSON
     const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-    // Mapeia os dados para o formato do seu app
     rows.forEach(row => {
       const clientData = {
-        id: Date.now().toString() + Math.random(), // ID único
-        clientName: row.Organizacao || row.Organização || "", // ajuste conforme o nome da coluna
+        id: Date.now().toString() + Math.random(),
+        clientName: row.Organizacao || row.Organização || "",
         clientMembers: row.Integrantes || "",
         clientStart: row["Data de início"] || "",
         clientEnd: row["Data Go live"] || "",
@@ -306,14 +358,21 @@ function importExcel() {
     });
 
     localStorage.setItem("kanbanClients", JSON.stringify(clients));
-    renderKanban();
-    renderClientes();
+    renderKanban(); renderClientes();
     alert("Importação concluída!");
   };
-
   reader.readAsArrayBuffer(file);
 }
 
+function deleteAllClients() {
+  if(confirm("Deseja realmente apagar **todos os clientes**?")) {
+    clients = [];
+    localStorage.removeItem("kanbanClients");
+    renderKanban();
+    renderClientes();
+    alert("Todos os clientes foram apagados!");
+  }
+}
 
 function openModal(client=null,isCard=true){
   editingClient = client; currentIsCard = isCard;
@@ -441,15 +500,6 @@ function updateClientColuna(id,value){
 }
 
 showModule('cards');
-// ANOTAÇÃO:
-// No seu código, logo depois da linha:
-// let clients = JSON.parse(localStorage.getItem("kanbanClients") || "[]");
-// você poderia, se quisesse apagar todos os clientes, adicionar estas duas linhas:
-// clients = []; // limpa o array de clientes
-// localStorage.removeItem("kanbanClients"); // remove todos os clientes do localStorage
-// Essa ação deve ser feita apenas uma vez; depois de executada, essas linhas podem ser removidas.
-// 
-
 </script>
 </body>
 </html>
