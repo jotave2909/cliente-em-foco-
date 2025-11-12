@@ -403,13 +403,38 @@ function saveClient(isCard){
     clientImplantador: clientImplantador.value,
     clientColuna: clientColuna.value
   };
-  if(editingClient){
+
+  // Atualiza localmente (como já fazia antes)
+  if (editingClient) {
     const index = clients.findIndex(c => c.id === clientData.id);
-    if(index !== -1) clients[index] = clientData;
-  } else { clients.push(clientData); }
+    if (index !== -1) clients[index] = clientData;
+  } else {
+    clients.push(clientData);
+  }
   localStorage.setItem("kanbanClients", JSON.stringify(clients));
-  closeModal(); renderKanban(); renderClientes();
+
+  // 👉 Envia os dados também para a planilha via Google Apps Script
+  fetch("https://script.google.com/macros/s/AKfycbxu1PZjJpQ1HorrcuukxTwTsUGjDaBSJEqKOxeSfsoW8Eq0YfNWmodAZi3g-mJjsZlBJA/exec", {
+    method: "POST",
+    body: JSON.stringify({
+      clientName: clientData.clientName,
+      status: clientData.clientColuna,
+      startDate: clientData.clientStart,
+      endDate: clientData.clientEnd
+    }),
+    headers: {
+      "Content-Type": "application/json"
+    }
+  })
+  .then(r => r.text())
+  .then(res => console.log("✅ Enviado à planilha:", res))
+  .catch(err => console.error("❌ Erro ao enviar:", err));
+
+  closeModal();
+  renderKanban();
+  renderClientes();
 }
+
 
 function deleteClient(id){
   if(confirm("Deseja realmente excluir este cliente?")){
@@ -504,3 +529,4 @@ showModule('cards');
 </script>
 </body>
 </html>
+
