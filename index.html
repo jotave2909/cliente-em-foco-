@@ -83,7 +83,6 @@
     border-radius: 8px;
   }
 
-  /* Main dentro do cards */
   main {
     display: flex;
     justify-content: space-between;
@@ -96,7 +95,6 @@
   .column {
     flex: 1;
     min-width: 250px;
-    max-width: 100%;
     background: #fff;
     border-radius: 8px;
     padding: 15px;
@@ -104,12 +102,9 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    box-sizing: border-box;
   }
 
-  .column h2 {
-    text-align: center;
-  }
+  .column h2 { text-align: center; }
 
   /* Cards */
   .card {
@@ -119,37 +114,15 @@
     margin: 10px 0;
     cursor: grab;
     font-size: 16px;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    overflow: hidden;
   }
+  
 
-  .card .details {
-    display: none;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-  }
+  .card .details { display: none; }
+  .card.dragging { opacity: 0.5; }
 
-  .card.dragging {
-    opacity: 0.5;
-  }
-
-  .card strong {
-    display: block;
-    margin-bottom: 6px;
-  }
-
-  button.actionBtn {
-    margin: 5px 3px;
-    padding: 5px 8px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-
+  button.actionBtn { margin: 5px 3px; padding: 5px 8px; border: none; border-radius: 5px; cursor: pointer; }
   .toggleBtn { background-color: #4caf50; color: white; }
   .editBtn { background-color: #2196f3; color: white; }
   .deleteBtn { background-color: #f44336; color: white; }
@@ -190,17 +163,8 @@
     border: 1px solid #ccc;
   }
 
-  table {
-    width:100%;
-    border-collapse: collapse;
-    margin-top:10px;
-  }
-
-  th, td {
-    border:1px solid #ccc;
-    padding:8px;
-    text-align:left;
-  }
+  table { width:100%; border-collapse: collapse; margin-top:10px; }
+  th, td { border:1px solid #ccc; padding:8px; text-align:left; }
 </style>
 </head>
 <body>
@@ -220,41 +184,41 @@
       <button onclick="exportKanbanToCSV()">Exportar CSV</button>
       <input type="text" id="searchInput" placeholder="Pesquisar cards..." oninput="renderKanban()">
     </div>
+
     <main>
       <div class="column" id="risco"><h2>⚠️ Risco de Cancelamento</h2></div>
       <div class="column" id="critico"><h2>❗ Críticos</h2></div>
+      <div class="column" id="acompanhamento"><h2>📆 Acompanhamento</h2></div>
       <div class="column" id="duvidas"><h2>ℹ️ Dúvidas</h2></div>
+      <div class="column" id="concluido"><h2>✅ Concluído</h2></div>
     </main>
   </div>
 
   <!-- Clientes Module -->
   <div id="clientesModule" style="display:none;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
-      <label for="excelFile" style="background:#2563eb; color:white; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:500;">Escolher arquivo</label>
+      <label for="excelFile" style="background:#2563eb; color:white; padding:8px 12px; border-radius:5px; cursor:pointer;">Escolher arquivo</label>
       <input type="file" id="excelFile" accept=".xlsx, .xls" style="display:none;">
-      <button onclick="importExcel()" style="background:#2563eb; color:white; padding:8px 12px; border:none; border-radius:5px; cursor:pointer; font-weight:500;">Importar Excel</button>
-      <button onclick="exportClientesToCSV()" style="background:#2563eb; color:white; padding:8px 12px; border:none; border-radius:5px; cursor:pointer; font-weight:500;">Exportar CSV</button>
+      <button onclick="importExcel()" style="background:#2563eb; color:white; padding:8px 12px; border:none; border-radius:5px;">Importar Excel</button>
+      <button onclick="exportClientesToCSV()" style="background:#2563eb; color:white; padding:8px 12px; border:none; border-radius:5px;">Exportar CSV</button>
     </div>
 
     <div style="text-align:center; margin-bottom:10px;">
-      <button onclick="openModal(null,false)" style="background:#2563eb; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer; font-weight:500;">+ Adicionar Cliente</button>
+      <button onclick="openModal(null,false)" style="background:#2563eb; color:white; padding:10px 20px; border:none; border-radius:5px;">+ Adicionar Cliente</button>
     </div>
 
     <input type="text" id="searchClientes" placeholder="Pesquisar clientes..." oninput="renderClientes()">
 
     <table>
       <thead>
-        <tr>
-          <th>Organização</th>
-          <th>Coluna</th>
-          <th>Ações</th>
-        </tr>
+        <tr><th>Organização</th><th>Coluna</th><th>Ações</th></tr>
       </thead>
       <tbody id="clientesTableBody"></tbody>
     </table>
   </div>
 </div>
 
+<!-- Modal -->
 <div id="modal">
   <div id="modalContent">
     <h3 id="modalTitle">Novo Cliente</h3>
@@ -266,27 +230,23 @@
     <textarea id="clientObservacoes" placeholder="Observações"></textarea>
     <textarea id="clientTratativa" placeholder="Tratativa"></textarea>
     <select id="clientReuniao">
-      <option value="">Reunião marcada?</option>
-      <option>Sim</option>
-      <option>Não</option>
+      <option value="">Reunião marcada?</option><option>Sim</option><option>Não</option>
     </select>
     <input type="date" id="clientDataReuniao" placeholder="Data reunião">
     <select id="clientDivergenciaComercial">
-      <option value="">Divergência Comercial?</option>
-      <option>Sim</option>
-      <option>Não</option>
+      <option value="">Divergência Comercial?</option><option>Sim</option><option>Não</option>
     </select>
     <select id="clientAtrasoImplantacao">
-      <option value="">Atraso implantação?</option>
-      <option>Sim</option>
-      <option>Não</option>
+      <option value="">Atraso implantação?</option><option>Sim</option><option>Não</option>
     </select>
     <input type="text" id="clientImplantador" placeholder="Implantador">
     <select id="clientColuna">
       <option value="">Sem coluna</option>
       <option value="risco">Risco de Cancelamento</option>
       <option value="critico">Críticos</option>
+      <option value="acompanhamento">Acompanhamento</option>
       <option value="duvidas">Dúvidas</option>
+      <option value="concluido">Concluído</option>
     </select>
     <button onclick="saveClient(currentIsCard)">Salvar</button>
     <button onclick="closeModal()">Cancelar</button>
@@ -294,22 +254,69 @@
 </div>
 
 <script>
-// --- JS permanece igual ao seu código original ---
-// Carregamento, renderização, salvar, editar, excluir, importar/exportar...
-let clients = JSON.parse(localStorage.getItem("kanbanClients") || "[]");
+let clients = JSON.parse(localStorage.getItem("kanbanClients") || "[]")
 let editingClient = null;
 let currentIsCard = true;
 
 function showModule(module){
   document.getElementById('cardsModule').style.display = module==='cards'? 'block':'none';
   document.getElementById('clientesModule').style.display = module==='clientes'? 'block':'none';
-  renderKanban();
-  renderClientes();
+  renderKanban(); renderClientes();
 }
 
+function importExcel() {
+  const fileInput = document.getElementById("excelFile");
+  const file = fileInput.files[0];
+  if (!file) {
+    alert("Escolha um arquivo Excel primeiro.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: "array" });
+
+    // Pegando a primeira aba
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+
+    // Converte para JSON
+    const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+    // Mapeia os dados para o formato do seu app
+    rows.forEach(row => {
+      const clientData = {
+        id: Date.now().toString() + Math.random(), // ID único
+        clientName: row.Organizacao || row.Organização || "", // ajuste conforme o nome da coluna
+        clientMembers: row.Integrantes || "",
+        clientStart: row["Data de início"] || "",
+        clientEnd: row["Data Go live"] || "",
+        clientTickets: row.Tickets || "",
+        clientObservacoes: row.Observações || "",
+        clientTratativa: row.Tratativa || "",
+        clientReuniao: row["Reunião marcada?"] || "",
+        clientDataReuniao: row["Data reunião"] || "",
+        clientDivergenciaComercial: row["Divergência Comercial?"] || "",
+        clientAtrasoImplantacao: row["Atraso implantação?"] || "",
+        clientImplantador: row.Implantador || "",
+        clientColuna: row.Coluna || ""
+      };
+      clients.push(clientData);
+    });
+
+    localStorage.setItem("kanbanClients", JSON.stringify(clients));
+    renderKanban();
+    renderClientes();
+    alert("Importação concluída!");
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
+
 function openModal(client=null,isCard=true){
-  editingClient = client;
-  currentIsCard = isCard;
+  editingClient = client; currentIsCard = isCard;
   document.getElementById("modal").style.display="flex";
   document.getElementById("modalTitle").innerText = client ? "Editar Cliente" : "Novo Cliente";
   ["clientName","clientMembers","clientStart","clientEnd","clientTickets","clientObservacoes","clientTratativa","clientReuniao","clientDataReuniao","clientDivergenciaComercial","clientAtrasoImplantacao","clientImplantador","clientColuna"].forEach(id=>{
@@ -322,19 +329,19 @@ function closeModal(){ document.getElementById("modal").style.display="none"; ed
 function saveClient(isCard){
   const clientData = {
     id: editingClient?.id || Date.now().toString(),
-    clientName: document.getElementById("clientName").value,
-    clientMembers: document.getElementById("clientMembers").value,
-    clientStart: document.getElementById("clientStart").value,
-    clientEnd: document.getElementById("clientEnd").value,
-    clientTickets: document.getElementById("clientTickets").value,
-    clientObservacoes: document.getElementById("clientObservacoes").value,
-    clientTratativa: document.getElementById("clientTratativa").value,
-    clientReuniao: document.getElementById("clientReuniao").value,
-    clientDataReuniao: document.getElementById("clientDataReuniao").value,
-    clientDivergenciaComercial: document.getElementById("clientDivergenciaComercial").value,
-    clientAtrasoImplantacao: document.getElementById("clientAtrasoImplantacao").value,
-    clientImplantador: document.getElementById("clientImplantador").value,
-    clientColuna: document.getElementById("clientColuna").value
+    clientName: clientName.value,
+    clientMembers: clientMembers.value,
+    clientStart: clientStart.value,
+    clientEnd: clientEnd.value,
+    clientTickets: clientTickets.value,
+    clientObservacoes: clientObservacoes.value,
+    clientTratativa: clientTratativa.value,
+    clientReuniao: clientReuniao.value,
+    clientDataReuniao: clientDataReuniao.value,
+    clientDivergenciaComercial: clientDivergenciaComercial.value,
+    clientAtrasoImplantacao: clientAtrasoImplantacao.value,
+    clientImplantador: clientImplantador.value,
+    clientColuna: clientColuna.value
   };
   if(editingClient){
     const index = clients.findIndex(c => c.id === clientData.id);
@@ -353,8 +360,9 @@ function deleteClient(id){
 }
 
 function renderKanban(){
-  const searchTerm = document.getElementById("searchInput")?.value.toLowerCase() || "";
-  ["risco","critico","duvidas"].forEach(col=>{
+  const searchTerm = (searchInput?.value || "").toLowerCase();
+  const columns = ["risco","critico","acompanhamento","duvidas","concluido"];
+  columns.forEach(col=>{
     const column = document.getElementById(col);
     const title = column.querySelector('h2').innerText;
     column.innerHTML = `<h2>${title}</h2>`;
@@ -366,32 +374,30 @@ function renderKanban(){
       if(card){ card.clientColuna = col; localStorage.setItem("kanbanClients", JSON.stringify(clients)); renderKanban(); renderClientes(); }
     });
   });
-  clients.filter(c=>c.clientColuna).filter(client => {
-    const values = [client.clientName, client.clientMembers, client.clientTickets, client.clientObservacoes, client.clientTratativa, client.clientImplantador].join(" ").toLowerCase();
-    return values.includes(searchTerm);
+
+  clients.filter(c=>c.clientColuna)
+  .filter(c=>{
+    const all = [c.clientName,c.clientMembers,c.clientTickets,c.clientObservacoes,c.clientTratativa,c.clientImplantador].join(" ").toLowerCase();
+    return all.includes(searchTerm);
   }).forEach(client=>{
     const card = document.createElement("div");
-    card.className="card"; card.dataset.id = client.id; card.draggable = true;
-    card.innerHTML = `
+    card.className="card"; card.dataset.id=client.id; card.draggable=true;
+    card.innerHTML=`
       <strong>${client.clientName}</strong>
+      <button class="toggleBtn">Mostrar mais</button>
       <div class="details">
         <p><b>Integrantes:</b> ${client.clientMembers||"-"}</p>
         <p><b>Período:</b> ${client.clientStart||"-"} → ${client.clientEnd||"-"}</p>
         <p><b>Tickets:</b> ${client.clientTickets||"-"}</p>
         <p><b>Observações:</b> ${client.clientObservacoes||"-"}</p>
         <p><b>Tratativa:</b> ${client.clientTratativa||"-"}</p>
-        <p><b>Reunião marcada:</b> ${client.clientReuniao||"-"}</p>
-        <p><b>Data reunião:</b> ${client.clientDataReuniao||"-"}</p>
-        <p><b>Divergência Comercial:</b> ${client.clientDivergenciaComercial||"-"}</p>
-        <p><b>Atraso Implantação:</b> ${client.clientAtrasoImplantacao||"-"}</p>
         <p><b>Implantador:</b> ${client.clientImplantador||"-"}</p>
       </div>
-      <button class="toggleBtn">Mostrar mais</button>
       <button class="editBtn">Editar</button>
       <button class="deleteBtn">Excluir</button>
     `;
     card.addEventListener("dragstart", e => { e.dataTransfer.setData("text/plain", client.id); card.classList.add("dragging"); });
-    card.addEventListener("dragend", e => card.classList.remove("dragging"));
+    card.addEventListener("dragend", ()=>card.classList.remove("dragging"));
     card.querySelector(".toggleBtn").addEventListener("click", ()=>{
       const d = card.querySelector(".details");
       d.style.display = d.style.display==="none"?"block":"none";
@@ -399,149 +405,51 @@ function renderKanban(){
     });
     card.querySelector(".editBtn").addEventListener("click",()=>openModal(client,true));
     card.querySelector(".deleteBtn").addEventListener("click",()=>deleteClient(client.id));
-    const columnEl = document.getElementById(client.clientColuna);
-    if(columnEl) columnEl.appendChild(card);
+    document.getElementById(client.clientColuna)?.appendChild(card);
   });
 }
 
 function renderClientes(){
-  const searchTerm = document.getElementById("searchClientes")?.value.toLowerCase() || "";
   const tbody = document.getElementById("clientesTableBody");
-  tbody.innerHTML = "";
-  clients.filter(client => [client.clientName].join(" ").toLowerCase().includes(searchTerm))
-    .forEach(client=>{
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${client.clientName}</td>
-        <td>
-          <select onchange="updateClientColuna('${client.id}',this.value)">
-            <option value="" ${client.clientColuna===""?"selected":""}>Sem coluna</option>
-            <option value="risco" ${client.clientColuna==="risco"?"selected":""}>Risco de Cancelamento</option>
-            <option value="critico" ${client.clientColuna==="critico"?"selected":""}>Críticos</option>
-            <option value="duvidas" ${client.clientColuna==="duvidas"?"selected":""}>Dúvidas</option>
-          </select>
-        </td>
-        <td>
-          <button onclick="openModal(clients.find(c=>c.id==='${client.id}'),false)">Editar</button>
-          <button onclick="deleteClient('${client.id}')">Excluir</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
+  tbody.innerHTML="";
+  clients.filter(c=>c.clientName.toLowerCase().includes((searchClientes?.value||"").toLowerCase()))
+  .forEach(c=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>${c.clientName}</td>
+      <td>
+        <select onchange="updateClientColuna('${c.id}',this.value)">
+          <option value="" ${c.clientColuna===""?"selected":""}>Sem coluna</option>
+          <option value="risco" ${c.clientColuna==="risco"?"selected":""}>Risco de Cancelamento</option>
+          <option value="critico" ${c.clientColuna==="critico"?"selected":""}>Críticos</option>
+          <option value="acompanhamento" ${c.clientColuna==="acompanhamento"?"selected":""}>Acompanhamento</option>
+          <option value="duvidas" ${c.clientColuna==="duvidas"?"selected":""}>Dúvidas</option>
+          <option value="concluido" ${c.clientColuna==="concluido"?"selected":""}>Concluído</option>
+        </select>
+      </td>
+      <td>
+        <button onclick="openModal(clients.find(c=>c.id==='${c.id}'),false)">Editar</button>
+        <button onclick="deleteClient('${c.id}')">Excluir</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
 }
 
 function updateClientColuna(id,value){
-  const client = clients.find(c=>c.id===id);
-  if(client){ client.clientColuna = value; localStorage.setItem("kanbanClients", JSON.stringify(clients)); renderKanban(); renderClientes(); }
+  const client=clients.find(c=>c.id===id);
+  if(client){ client.clientColuna=value; localStorage.setItem("kanbanClients", JSON.stringify(clients)); renderKanban(); renderClientes(); }
 }
 
-function exportKanbanToCSV(){
-  const filtered = clients.filter(c => c.clientColuna && c.clientColuna.toString().trim() !== "");
-  if(filtered.length === 0){
-    alert("Nenhum card para exportar!");
-    return;
-  }
-  exportClientsCSV(filtered, "cards");
-}
-
-function exportClientesToCSV(){
-  if(!clients || clients.length === 0){
-    alert("Nenhum cliente para exportar!");
-    return;
-  }
-  exportClientsCSV(clients, "clientes");
-}
-
-function exportClientsCSV(list, filename){
-  const headers = ["Organização","Integrantes","Data Início","Data Go Live","Tickets","Observações","Tratativa","Reunião","Data Reunião","Divergência Comercial","Atraso Implantação","Implantador","Coluna"];
-  const csvRows = [headers.join(";")];
-
-  list.forEach(c => {
-    // monta a linha garantindo que cada campo seja string e escapando aspas
-    const row = [
-      c.clientName,
-      c.clientMembers,
-      c.clientStart,
-      c.clientEnd,
-      c.clientTickets,
-      c.clientObservacoes,
-      c.clientTratativa,
-      c.clientReuniao,
-      c.clientDataReuniao,
-      c.clientDivergenciaComercial,
-      c.clientAtrasoImplantacao,
-      c.clientImplantador,
-      c.clientColuna
-    ].map(v => {
-      const safe = String(v === undefined || v === null ? "" : v);
-      return `"${safe.replace(/"/g, '""')}"`;
-    }).join(";");
-    csvRows.push(row);
-  });
-
-  const blob = new Blob([csvRows.join("\r\n")], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename + ".csv";
-  document.body.appendChild(a); // some browsers need it in DOM
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-
-function importExcel() {
-  const fileInput = document.getElementById("excelFile");
-  if (!fileInput.files.length) { alert("Selecione um arquivo Excel ou CSV!"); return; }
-  const file = fileInput.files[0];
-  const reader = new FileReader();
-
-  reader.onload = function(e) {
-    const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, { type: 'array' });
-    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rawJsonData = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
-    const jsonData = rawJsonData.map(row => {
-      const normalizedRow = {};
-      for (let key in row) {
-        const newKey = key.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-        normalizedRow[newKey] = row[key];
-      }
-      return normalizedRow;
-    });
-    jsonData.forEach(row => {
-      const clientData = {
-        id: Date.now().toString() + Math.random(),
-        clientName: row["Organização"] || row["Organizacao"] || row["Organizaçao"] || row[Object.keys(row)[0]] || "",
-        clientMembers: row["Integrantes"] || "",
-        clientStart: row["Data Inicio"] || "",
-        clientEnd: row["Data Go Live"] || "",
-        clientTickets: row["Tickets"] || "",
-        clientObservacoes: row["Observacoes"] || "",
-        clientTratativa: row["Tratativa"] || "",
-        clientReuniao: row["Reuniao"] || "",
-        clientDataReuniao: row["Data Reuniao"] || "",
-        clientDivergenciaComercial: row["Divergencia Comercial"] || "",
-        clientAtrasoImplantacao: row["Atraso Implantacao"] || "",
-        clientImplantador: row["Implantador"] || "",
-        clientColuna: row["Coluna"] || ""
-      };
-      clients.push(clientData);
-    });
-
-    localStorage.setItem("kanbanClients", JSON.stringify(clients));
-    renderClientes();
-    renderKanban();
-    alert("Clientes importados com sucesso!");
-  };
-
-  reader.readAsArrayBuffer(file);
-}
-
-// Inicializa módulos
 showModule('cards');
-</script>
+// ANOTAÇÃO:
+// No seu código, logo depois da linha:
+// let clients = JSON.parse(localStorage.getItem("kanbanClients") || "[]");
+// você poderia, se quisesse apagar todos os clientes, adicionar estas duas linhas:
+// clients = []; // limpa o array de clientes
+// localStorage.removeItem("kanbanClients"); // remove todos os clientes do localStorage
+// Essa ação deve ser feita apenas uma vez; depois de executada, essas linhas podem ser removidas.
+// 
 
+</script>
 </body>
 </html>
