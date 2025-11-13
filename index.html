@@ -229,15 +229,101 @@ function importExcel() {
   reader.readAsArrayBuffer(file);
 }
 
-// 🔹 Modal e salvar
-function openModal(client=null,isCard=true){
-  editingClient=client; currentIsCard=isCard;
-  document.getElementById("modal").style.display="flex";
-  document.getElementById("modalTitle").innerText = client ? "Editar Cliente" : "Novo Cliente";
-  ["clientName","clientMembers","clientStart","clientEnd","clientTickets","clientObservacoes","clientTratativa","clientReuniao","clientDataReuniao","clientDivergenciaComercial","clientAtrasoImplantacao","clientImplantador","clientColuna"].forEach(id=>{
-    document.getElementById(id).value = client?.[id] || "";
+// 🔹 Exportar Cards para CSV
+function exportKanbanToCSV() {
+  const columns = ["risco","critico","acompanhamento","duvidas","concluido"];
+  let csv = "Nome,Integrantes,Data Início,Go live,Tickets,Observações,Tratativa,Implantador,Coluna\n";
+
+  clients.filter(c => c.clientColuna).forEach(c => {
+    const row = [
+      `"${c.clientName}"`,
+      `"${c.clientMembers}"`,
+      `"${c.clientStart}"`,
+      `"${c.clientEnd}"`,
+      `"${c.clientTickets}"`,
+      `"${c.clientObservacoes}"`,
+      `"${c.clientTratativa}"`,
+      `"${c.clientImplantador}"`,
+      `"${c.clientColuna}"`
+    ];
+    csv += row.join(",") + "\n";
   });
+
+  downloadCSV(csv, "cards.csv");
 }
+
+// 🔹 Funções de exportação CSV (compatível com Excel PT-BR)
+function exportKanbanToCSV() {
+  let csv = "Nome;Integrantes;Data Início;Go live;Tickets;Observações;Tratativa;Implantador;Coluna\n";
+  clients.filter(c => c.clientColuna).forEach(c => {
+    const row = [
+      `"${c.clientName || ""}"`,
+      `"${c.clientMembers || ""}"`,
+      `"${c.clientStart || ""}"`,
+      `"${c.clientEnd || ""}"`,
+      `"${c.clientTickets || ""}"`,
+      `"${c.clientObservacoes || ""}"`,
+      `"${c.clientTratativa || ""}"`,
+      `"${c.clientImplantador || ""}"`,
+      `"${c.clientColuna || ""}"`
+    ];
+    csv += row.join(";") + "\n";
+  });
+  downloadCSV(csv, "cards.csv");
+}
+
+function exportClientesToCSV() {
+  let csv = "Nome;Integrantes;Data Início;Go live;Tickets;Observações;Tratativa;Implantador;Coluna\n";
+  clients.forEach(c => {
+    const row = [
+      `"${c.clientName || ""}"`,
+      `"${c.clientMembers || ""}"`,
+      `"${c.clientStart || ""}"`,
+      `"${c.clientEnd || ""}"`,
+      `"${c.clientTickets || ""}"`,
+      `"${c.clientObservacoes || ""}"`,
+      `"${c.clientTratativa || ""}"`,
+      `"${c.clientImplantador || ""}"`,
+      `"${c.clientColuna || ""}"`
+    ];
+    csv += row.join(";") + "\n";
+  });
+  downloadCSV(csv, "clientes.csv");
+}
+
+function downloadCSV(csvContent, fileName) {
+  const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" }); // BOM para acentuação correta
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// 🔹 Modal e salvar
+function openModal(client=null, isCard=true){
+  editingClient = client;
+  currentIsCard = isCard;
+  document.getElementById("modal").style.display = "flex";
+  document.getElementById("modalTitle").innerText = client ? "Editar Cliente" : "Novo Cliente";
+
+  document.getElementById("clientName").value = client?.clientName || "";
+  document.getElementById("clientMembers").value = client?.clientMembers || "";
+  document.getElementById("clientStart").value = formatDateInput(client?.clientStart);
+  document.getElementById("clientEnd").value = formatDateInput(client?.clientEnd);
+  document.getElementById("clientTickets").value = client?.clientTickets || "";
+  document.getElementById("clientObservacoes").value = client?.clientObservacoes || "";
+  document.getElementById("clientTratativa").value = client?.clientTratativa || "";
+  document.getElementById("clientReuniao").value = client?.clientReuniao || "";
+  document.getElementById("clientDataReuniao").value = formatDateInput(client?.clientDataReuniao);
+  document.getElementById("clientDivergenciaComercial").value = client?.clientDivergenciaComercial || "";
+  document.getElementById("clientAtrasoImplantacao").value = client?.clientAtrasoImplantacao || "";
+  document.getElementById("clientImplantador").value = client?.clientImplantador || "";
+  document.getElementById("clientColuna").value = client?.clientColuna || "";
+}
+
 function closeModal(){ document.getElementById("modal").style.display="none"; editingClient=null; }
 
 function saveClient(isCard){
