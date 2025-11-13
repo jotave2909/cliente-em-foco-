@@ -171,39 +171,49 @@ function loadClientsFromSheet(){
 }
 
 // 🔹 Importar Excel
-function importExcel(){
+function importExcel() {
   const file = document.getElementById("excelFile").files[0];
-  if(!file){ alert("Selecione um arquivo Excel primeiro."); return; }
+  if (!file) {
+    alert("Selecione um arquivo Excel primeiro.");
+    return;
+  }
 
   const reader = new FileReader();
-  reader.onload = function(e){
+  reader.onload = function (e) {
     const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, {type: 'array'});
+    const workbook = XLSX.read(data, { type: 'array' });
     const sheetName = workbook.SheetNames[0];
     const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-    sheet.forEach(row=>{
+    sheet.forEach(row => {
       const clientData = {
-        id: Date.now().toString() + Math.random(),
-        clientName: row["Organização"] || "",
-        clientMembers: row["Integrantes"] || "",
-        clientStart: row["Data início"] || "",
-        clientEnd: row["Data Go live"] || "",
-        clientTickets: row["Tickets"] || "",
-        clientObservacoes: row["Observações"] || "",
-        clientTratativa: row["Tratativa"] || "",
-        clientReuniao: row["Reunião marcada?"] || "",
-        clientDataReuniao: row["Data reunião"] || "",
-        clientDivergenciaComercial: row["Divergência Comercial?"] || "",
-        clientAtrasoImplantacao: row["Atraso implantação?"] || "",
-        clientImplantador: row["Implantador"] || "",
-        clientColuna: row["Coluna"] || ""
+        clientName: row["Organização"]?.trim() || "",
+        clientMembers: row["Integrantes"]?.trim() || "",
+        clientStart: row["Data início"]?.trim() || "",
+        clientEnd: row["Data Go live"]?.trim() || "",
+        clientTickets: row["Tickets"]?.trim() || "",
+        clientObservacoes: row["Observações"]?.trim() || "",
+        clientTratativa: row["Tratativa"]?.trim() || "",
+        clientReuniao: row["Reunião marcada?"]?.trim() || "",
+        clientDataReuniao: row["Data reunião"]?.trim() || "",
+        clientDivergenciaComercial: row["Divergência Comercial?"]?.trim() || "",
+        clientAtrasoImplantacao: row["Atraso implantação?"]?.trim() || "",
+        clientImplantador: row["Implantador"]?.trim() || "",
+        clientColuna: row["Coluna"]?.trim() || ""
       };
 
-      clients.push(clientData);
-
-      // 🔹 Envia para a planilha (importante!)
+      // 🔹 Sempre envia para a planilha
       saveClientToSheet(clientData);
+
+      // 🔹 Evita duplicidade no site usando comparação "limpa"
+      const existing = clients.find(c => c.clientName.trim().toLowerCase() === clientData.clientName.toLowerCase());
+
+      if (!existing) {
+        clientData.id = Date.now().toString() + Math.random();
+        clients.push(clientData);
+      } else {
+        Object.assign(existing, clientData); // Atualiza dados existentes sem duplicar
+      }
     });
 
     localStorage.setItem("kanbanClients", JSON.stringify(clients));
@@ -211,8 +221,10 @@ function importExcel(){
     renderClientes();
     alert("Clientes importados e enviados para a planilha com sucesso!");
   };
+
   reader.readAsArrayBuffer(file);
 }
+
 
 // 🔹 Exportar CSV
 function exportClientesToCSV(){
