@@ -199,13 +199,17 @@ function importExcel(){
         clientImplantador: row["Implantador"] || "",
         clientColuna: row["Coluna"] || ""
       };
+
       clients.push(clientData);
+
+      // 🔹 Envia para a planilha (importante!)
+      saveClientToSheet(clientData);
     });
 
     localStorage.setItem("kanbanClients", JSON.stringify(clients));
     renderKanban();
     renderClientes();
-    alert("Clientes importados com sucesso!");
+    alert("Clientes importados e enviados para a planilha com sucesso!");
   };
   reader.readAsArrayBuffer(file);
 }
