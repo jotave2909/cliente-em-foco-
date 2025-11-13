@@ -368,19 +368,20 @@ function deleteClient(id){
 }
 
 function renderKanban(){
-  const searchTerm=(searchInput?.value||"").toLowerCase();
-  const columns=["risco","critico","acompanhamento","duvidas","concluido"];
+  const searchTerm = (searchInput?.value || "").toLowerCase();
+  const columns = ["risco","critico","acompanhamento","duvidas","concluido"];
+
   columns.forEach(col=>{
-    const column=document.getElementById(col);
-    const title=column.querySelector('h2').innerText;
-    column.innerHTML=`<h2>${title}</h2>`;
-    column.addEventListener("dragover",e=>e.preventDefault());
-    column.addEventListener("drop",e=>{
+    const column = document.getElementById(col);
+    const title = column.querySelector('h2').innerText;
+    column.innerHTML = `<h2>${title}</h2>`;
+    column.addEventListener("dragover", e => e.preventDefault());
+    column.addEventListener("drop", e => {
       e.preventDefault();
-      const cardId=e.dataTransfer.getData("text/plain");
-      const card=clients.find(c=>c.id===cardId);
+      const cardId = e.dataTransfer.getData("text/plain");
+      const card = clients.find(c => c.id === cardId);
       if(card){ 
-        card.clientColuna=col;
+        card.clientColuna = col;
         localStorage.setItem("kanbanClients", JSON.stringify(clients));
         saveClientToSheet(card);
         renderKanban(); renderClientes(); 
@@ -388,39 +389,79 @@ function renderKanban(){
     });
   });
 
-  clients.filter(c=>c.clientColuna).filter(c=>{
-    const all=[c.clientName,c.clientMembers,c.clientTickets,c.clientObservacoes,c.clientTratativa,c.clientImplantador].join(" ").toLowerCase();
-    return all.includes(searchTerm);
-  }).forEach(client=>{
-    const card=document.createElement("div"); card.className="card"; card.dataset.id=client.id; card.draggable=true;
-    card.innerHTML = `
-  <strong>${client.clientName}</strong>
-  <button class="toggleBtn">Mostrar mais</button>
-  <div class="details">
-    <p><b>Integrantes:</b> ${client.clientMembers || "-"}</p>
-    <p><b>Data início:</b> ${client.clientStart ? new Date(client.clientStart).toLocaleDateString('pt-BR') : "-"}</p>
-    <p><b>Go live:</b> ${client.clientEnd ? new Date(client.clientEnd).toLocaleDateString('pt-BR') : "-"}</p>
-    <p><b>Tickets:</b> ${client.clientTickets || "-"}</p>
-    <p><b>Observações:</b> ${client.clientObservacoes || "-"}</p>
-    <p><b>Tratativa:</b> ${client.clientTratativa || "-"}</p>
-    <p><b>Implantador:</b> ${client.clientImplantador || "-"}</p>
-  </div>
-  <button class="editBtn">Editar</button>
-  <button class="deleteBtn">Excluir</button>
-`;
+  clients
+    .filter(c => c.clientColuna)
+    .filter(c => {
+      const all = [
+        c.clientName, c.clientMembers, c.clientTickets, 
+        c.clientObservacoes, c.clientTratativa, c.clientImplantador
+      ].join(" ").toLowerCase();
+      return all.includes(searchTerm);
+    })
+    .forEach(client => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.dataset.id = client.id;
+      card.draggable = true;
 
-    card.addEventListener("dragstart", e=>{ e.dataTransfer.setData("text/plain", client.id); card.classList.add("dragging"); });
-    card.addEventListener("dragend", ()=>card.classList.remove("dragging"));
-    card.querySelector(".toggleBtn").addEventListener("click", ()=>{
-      const d=card.querySelector(".details");
-      d.style.display=d.style.display==="none"?"block":"none";
-      card.querySelector(".toggleBtn").innerText=d.style.display==="none"?"Mostrar mais":"Mostrar menos";
+      card.innerHTML = `
+        <strong>${client.clientName}</strong>
+        <button class="toggleBtn">Mostrar mais</button>
+        <div class="details" style="display:none; margin-top:10px;">
+          <p><b>Integrantes:</b> ${client.clientMembers || "-"}</p>
+          <p><b>Data início:</b> ${client.clientStart ? new Date(client.clientStart).toLocaleDateString('pt-BR') : "-"}</p>
+          <p><b>Go live:</b> ${client.clientEnd ? new Date(client.clientEnd).toLocaleDateString('pt-BR') : "-"}</p>
+          <p><b>Tickets:</b> ${client.clientTickets || "-"}</p>
+          <p><b>Observações:</b> ${client.clientObservacoes || "-"}</p>
+          <p><b>Tratativa:</b> ${client.clientTratativa || "-"}</p>
+          <p><b>Implantador:</b> ${client.clientImplantador || "-"}</p>
+          <div style="display:flex; gap:8px; margin-top:10px;">
+            <button class="editBtn">Editar</button>
+            <button class="deleteBtn">Excluir</button>
+          </div>
+        </div>
+      `;
+
+      // 🔹 Evento de clique no card para abrir/fechar detalhes
+      card.addEventListener("click", (e) => {
+        // Evita conflito com o botão Mostrar mais
+        if (e.target.classList.contains("toggleBtn")) return;
+        const details = card.querySelector(".details");
+        const toggle = card.querySelector(".toggleBtn");
+        const isVisible = details.style.display === "block";
+        details.style.display = isVisible ? "none" : "block";
+        toggle.innerText = isVisible ? "Mostrar mais" : "Mostrar menos";
+      });
+
+      // 🔹 Botões internos
+      card.querySelector(".toggleBtn").addEventListener("click", (e)=>{
+        e.stopPropagation();
+        const d = card.querySelector(".details");
+        const isVisible = d.style.display === "block";
+        d.style.display = isVisible ? "none" : "block";
+        e.target.innerText = isVisible ? "Mostrar mais" : "Mostrar menos";
+      });
+
+      card.querySelector(".editBtn").addEventListener("click", (e)=>{
+        e.stopPropagation();
+        openModal(client,true);
+      });
+
+      card.querySelector(".deleteBtn").addEventListener("click", (e)=>{
+        e.stopPropagation();
+        deleteClient(client.id);
+      });
+
+      card.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text/plain", client.id);
+        card.classList.add("dragging");
+      });
+      card.addEventListener("dragend", ()=>card.classList.remove("dragging"));
+
+      document.getElementById(client.clientColuna)?.appendChild(card);
     });
-    card.querySelector(".editBtn").addEventListener("click", ()=>openModal(client,true));
-    card.querySelector(".deleteBtn").addEventListener("click", ()=>deleteClient(client.id));
-    document.getElementById(client.clientColuna)?.appendChild(card);
-  });
 }
+
 
 function renderClientes(){
   const tbody=document.getElementById("clientesTableBody");
