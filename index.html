@@ -323,20 +323,22 @@ function renderKanban(){
     return all.includes(searchTerm);
   }).forEach(client=>{
     const card=document.createElement("div"); card.className="card"; card.dataset.id=client.id; card.draggable=true;
-    card.innerHTML=`
-      <strong>${client.clientName}</strong>
-      <button class="toggleBtn">Mostrar mais</button>
-      <div class="details">
-        <p><b>Integrantes:</b> ${client.clientMembers||"-"}</p>
-        <p><b>Período:</b> ${client.clientStart||"-"} → ${client.clientEnd||"-"}</p>
-        <p><b>Tickets:</b> ${client.clientTickets||"-"}</p>
-        <p><b>Observações:</b> ${client.clientObservacoes||"-"}</p>
-        <p><b>Tratativa:</b> ${client.clientTratativa||"-"}</p>
-        <p><b>Implantador:</b> ${client.clientImplantador||"-"}</p>
-      </div>
-      <button class="editBtn">Editar</button>
-      <button class="deleteBtn">Excluir</button>
-    `;
+    card.innerHTML = `
+  <strong>${client.clientName}</strong>
+  <button class="toggleBtn">Mostrar mais</button>
+  <div class="details">
+    <p><b>Integrantes:</b> ${client.clientMembers || "-"}</p>
+    <p><b>Data início:</b> ${client.clientStart ? new Date(client.clientStart).toLocaleDateString('pt-BR') : "-"}</p>
+    <p><b>Go live:</b> ${client.clientEnd ? new Date(client.clientEnd).toLocaleDateString('pt-BR') : "-"}</p>
+    <p><b>Tickets:</b> ${client.clientTickets || "-"}</p>
+    <p><b>Observações:</b> ${client.clientObservacoes || "-"}</p>
+    <p><b>Tratativa:</b> ${client.clientTratativa || "-"}</p>
+    <p><b>Implantador:</b> ${client.clientImplantador || "-"}</p>
+  </div>
+  <button class="editBtn">Editar</button>
+  <button class="deleteBtn">Excluir</button>
+`;
+
     card.addEventListener("dragstart", e=>{ e.dataTransfer.setData("text/plain", client.id); card.classList.add("dragging"); });
     card.addEventListener("dragend", ()=>card.classList.remove("dragging"));
     card.querySelector(".toggleBtn").addEventListener("click", ()=>{
