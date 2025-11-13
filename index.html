@@ -277,16 +277,20 @@ function saveClient(isCard){
     clientImplantador: clientImplantador.value,
     clientColuna: clientColuna.value
   };
-  if(editingClient){
-    const index=clients.findIndex(c=>c.id===clientData.id);
-    if(index!==-1) clients[index]=clientData;
-  } else {
+  if(editingClient){ // Edição
+    const index = clients.findIndex(c => c.id === editingClient.id); // usa editingClient.id
+    if(index !== -1){
+      clients[index] = clientData; // substitui corretamente
+    }
+  } else { // Novo cliente
     clients.push(clientData);
   }
 
   localStorage.setItem("kanbanClients", JSON.stringify(clients));
   saveClientToSheet(clientData);
-  closeModal(); renderKanban(); renderClientes();
+  closeModal();
+  renderKanban();
+  renderClientes();
 }
 
 // 🔹 Renderizações e atualizações (mantém igual ao seu)
