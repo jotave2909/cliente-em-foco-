@@ -141,6 +141,14 @@ function showModule(module){
   renderKanban(); renderClientes();
 }
 
+// 🔹 Helpers de data
+function formatDateInput(value){
+  if(!value) return "";
+  const d = new Date(value);
+  if(isNaN(d)) return "";
+  return d.toISOString().split("T")[0]; // YYYY-MM-DD
+}
+
 // 🔹 Google Sheets
 function saveClientToSheet(client){
   fetch(SHEET_URL,{
@@ -173,10 +181,7 @@ function loadClientsFromSheet(){
 // 🔹 Importar Excel
 function importExcel() {
   const file = document.getElementById("excelFile").files[0];
-  if (!file) {
-    alert("Selecione um arquivo Excel primeiro.");
-    return;
-  }
+  if (!file) { alert("Selecione um arquivo Excel primeiro."); return; }
 
   const reader = new FileReader();
   reader.onload = function (e) {
@@ -189,30 +194,29 @@ function importExcel() {
       const clientData = {
         clientName: row["Organização"]?.trim() || "",
         clientMembers: row["Integrantes"]?.trim() || "",
-        clientStart: row["Data início"]?.trim() || "",
-        clientEnd: row["Data Go live"]?.trim() || "",
+        clientStart: formatDateInput(row["Data início"]),
+        clientEnd: formatDateInput(row["Data Go live"]),
         clientTickets: row["Tickets"]?.trim() || "",
         clientObservacoes: row["Observações"]?.trim() || "",
         clientTratativa: row["Tratativa"]?.trim() || "",
         clientReuniao: row["Reunião marcada?"]?.trim() || "",
-        clientDataReuniao: row["Data reunião"]?.trim() || "",
+        clientDataReuniao: formatDateInput(row["Data reunião"]),
         clientDivergenciaComercial: row["Divergência Comercial?"]?.trim() || "",
         clientAtrasoImplantacao: row["Atraso implantação?"]?.trim() || "",
         clientImplantador: row["Implantador"]?.trim() || "",
         clientColuna: row["Coluna"]?.trim() || ""
       };
 
-      // 🔹 Sempre envia para a planilha
+      // 🔹 Envia sempre para a planilha
       saveClientToSheet(clientData);
 
-      // 🔹 Evita duplicidade no site usando comparação "limpa"
+      // 🔹 Evita duplicidade no site
       const existing = clients.find(c => c.clientName.trim().toLowerCase() === clientData.clientName.toLowerCase());
-
       if (!existing) {
         clientData.id = Date.now().toString() + Math.random();
         clients.push(clientData);
       } else {
-        Object.assign(existing, clientData); // Atualiza dados existentes sem duplicar
+        Object.assign(existing, clientData);
       }
     });
 
@@ -225,43 +229,7 @@ function importExcel() {
   reader.readAsArrayBuffer(file);
 }
 
-
-// 🔹 Exportar CSV
-function exportClientesToCSV(){
-  if(clients.length === 0){ alert("Nenhum cliente para exportar."); return; }
-
-  const headers = [
-    "Organização","Integrantes","Data início","Data Go live","Tickets",
-    "Observações","Tratativa","Reunião marcada?","Data reunião",
-    "Divergência Comercial?","Atraso implantação?","Implantador","Coluna"
-  ];
-
-  const rows = clients.map(c => [
-    c.clientName, c.clientMembers, c.clientStart, c.clientEnd, c.clientTickets,
-    c.clientObservacoes, c.clientTratativa, c.clientReuniao, c.clientDataReuniao,
-    c.clientDivergenciaComercial, c.clientAtrasoImplantacao, c.clientImplantador, c.clientColuna
-  ]);
-
-  let csv = headers.join(",") + "\n" + rows.map(r => r.map(v => `"${v||""}"`).join(",")).join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "clientes.csv";
-  link.click();
-}
-
-// 🔹 Apagar todos
-function deleteAllClients(){
-  if(confirm("Tem certeza que deseja apagar TODOS os clientes? Essa ação não pode ser desfeita.")){
-    clients = [];
-    localStorage.removeItem("kanbanClients");
-    renderKanban();
-    renderClientes();
-    alert("Todos os clientes foram apagados com sucesso.");
-  }
-}
-
-// 🔹 Modal, salvar, editar, render etc (mantém igual ao seu)
+// 🔹 Modal e salvar
 function openModal(client=null,isCard=true){
   editingClient=client; currentIsCard=isCard;
   document.getElementById("modal").style.display="flex";
@@ -277,24 +245,23 @@ function saveClient(isCard){
     id: editingClient?.id || Date.now().toString(),
     clientName: clientName.value,
     clientMembers: clientMembers.value,
-    clientStart: clientStart.value,
-    clientEnd: clientEnd.value,
+    clientStart: formatDateInput(clientStart.value),
+    clientEnd: formatDateInput(clientEnd.value),
     clientTickets: clientTickets.value,
     clientObservacoes: clientObservacoes.value,
     clientTratativa: clientTratativa.value,
     clientReuniao: clientReuniao.value,
-    clientDataReuniao: clientDataReuniao.value,
+    clientDataReuniao: formatDateInput(clientDataReuniao.value),
     clientDivergenciaComercial: clientDivergenciaComercial.value,
     clientAtrasoImplantacao: clientAtrasoImplantacao.value,
     clientImplantador: clientImplantador.value,
     clientColuna: clientColuna.value
   };
-  if(editingClient){ // Edição
-    const index = clients.findIndex(c => c.id === editingClient.id); // usa editingClient.id
-    if(index !== -1){
-      clients[index] = clientData; // substitui corretamente
-    }
-  } else { // Novo cliente
+
+  if(editingClient){
+    const index = clients.findIndex(c => c.id === editingClient.id);
+    if(index !== -1) clients[index] = clientData;
+  } else {
     clients.push(clientData);
   }
 
@@ -305,7 +272,7 @@ function saveClient(isCard){
   renderClientes();
 }
 
-// 🔹 Renderizações e atualizações (mantém igual ao seu)
+// 🔹 Renderizações
 function deleteClient(id){
   if(confirm("Deseja realmente excluir este cliente?")){
     clients=clients.filter(c=>c.id!==id);
@@ -334,6 +301,7 @@ function renderKanban(){
       }
     });
   });
+
   clients.filter(c=>c.clientColuna).filter(c=>{
     const all=[c.clientName,c.clientMembers,c.clientTickets,c.clientObservacoes,c.clientTratativa,c.clientImplantador].join(" ").toLowerCase();
     return all.includes(searchTerm);
@@ -401,6 +369,16 @@ function updateClientColuna(id,value){
     saveClientToSheet(client);
     renderKanban();
     renderClientes();
+  }
+}
+
+function deleteAllClients(){
+  if(confirm("Tem certeza que deseja apagar TODOS os clientes? Essa ação não pode ser desfeita.")){
+    clients = [];
+    localStorage.removeItem("kanbanClients");
+    renderKanban();
+    renderClientes();
+    alert("Todos os clientes foram apagados com sucesso.");
   }
 }
 
