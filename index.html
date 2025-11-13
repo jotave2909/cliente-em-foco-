@@ -133,7 +133,7 @@
 let clients = JSON.parse(localStorage.getItem("kanbanClients") || "[]");
 let editingClient = null;
 let currentIsCard = true;
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbxu1PZjJpQ1HorrcuukxTwTsUGjDaBSJEqKOxeSfsoW8Eq0YfNWmodAZi3g-mJjsZlBJA/exec"; // <<<< Trocar aqui
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbz_ii7VgsUnPLtNkvrcp3Q9ATIaPM_LgAEZaeoHqGoJdDLJCkbuFUFc1C2zUkiIlXRxDw/exec"; // Troque aqui
 
 function showModule(module){
   document.getElementById('cardsModule').style.display = module==='cards'? 'block':'none';
@@ -141,15 +141,11 @@ function showModule(module){
   renderKanban(); renderClientes();
 }
 
-// 🔹 Funções de export
-function exportClientesToCSV() { /* igual ao seu código */ }
-function exportKanbanToCSV() { /* igual ao seu código */ }
-
 // 🔹 Google Sheets
-function saveClientToSheet(clientData){
-  fetch(SHEET_URL, {
-    method: "POST",
-    body: JSON.stringify(clientData)
+function saveClientToSheet(client){
+  fetch(SHEET_URL,{
+    method:"POST",
+    body: JSON.stringify(client)
   }).then(res=>res.json())
     .then(res=>console.log("Salvo na planilha!", res))
     .catch(err=>console.error("Erro ao salvar na planilha", err));
@@ -159,10 +155,19 @@ function loadClientsFromSheet(){
   fetch(SHEET_URL)
     .then(res=>res.json())
     .then(data=>{
-      clients = data.map((c,i)=>({...c,id:Date.now().toString()+i}));
+      data.forEach(sheetClient => {
+        const existing = clients.find(c=>c.clientName===sheetClient.clientName);
+        if(existing){
+          Object.assign(existing, sheetClient); // Atualiza dados existentes sem criar ID novo
+        } else {
+          clients.push({...sheetClient, id: Date.now().toString()+Math.random()});
+        }
+      });
       localStorage.setItem("kanbanClients", JSON.stringify(clients));
-      renderKanban(); renderClientes();
-    }).catch(err=>console.error("Erro ao carregar da planilha", err));
+      renderKanban();
+      renderClientes();
+    })
+    .catch(err=>console.error("Erro ao carregar da planilha", err));
 }
 
 // 🔹 Modal
@@ -174,7 +179,6 @@ function openModal(client=null,isCard=true){
     document.getElementById(id).value = client?.[id] || "";
   });
 }
-
 function closeModal(){ document.getElementById("modal").style.display="none"; editingClient=null; }
 
 function saveClient(isCard){
@@ -197,15 +201,23 @@ function saveClient(isCard){
   if(editingClient){
     const index=clients.findIndex(c=>c.id===clientData.id);
     if(index!==-1) clients[index]=clientData;
-  } else { clients.push(clientData); }
+  } else {
+    clients.push(clientData);
+  }
 
   localStorage.setItem("kanbanClients", JSON.stringify(clients));
-  saveClientToSheet(clientData); // 🔹 envia para a planilha
+  saveClientToSheet(clientData);
   closeModal(); renderKanban(); renderClientes();
 }
 
 // 🔹 Deletar
-function deleteClient(id){ if(confirm("Deseja realmente excluir este cliente?")){ clients=clients.filter(c=>c.id!==id); localStorage.setItem("kanbanClients", JSON.stringify(clients)); renderKanban(); renderClientes(); } }
+function deleteClient(id){
+  if(confirm("Deseja realmente excluir este cliente?")){
+    clients=clients.filter(c=>c.id!==id);
+    localStorage.setItem("kanbanClients", JSON.stringify(clients));
+    renderKanban(); renderClientes();
+  }
+}
 
 // 🔹 Render Kanban
 function renderKanban(){
@@ -216,7 +228,17 @@ function renderKanban(){
     const title=column.querySelector('h2').innerText;
     column.innerHTML=`<h2>${title}</h2>`;
     column.addEventListener("dragover",e=>e.preventDefault());
-    column.addEventListener("drop",e=>{ e.preventDefault(); const cardId=e.dataTransfer.getData("text/plain"); const card=clients.find(c=>c.id===cardId); if(card){ card.clientColuna=col; localStorage.setItem("kanbanClients", JSON.stringify(clients)); renderKanban(); renderClientes(); } });
+    column.addEventListener("drop",e=>{
+      e.preventDefault();
+      const cardId=e.dataTransfer.getData("text/plain");
+      const card=clients.find(c=>c.id===cardId);
+      if(card){ 
+        card.clientColuna=col;
+        localStorage.setItem("kanbanClients", JSON.stringify(clients));
+        saveClientToSheet(card); // atualiza na planilha
+        renderKanban(); renderClientes(); 
+      }
+    });
   });
   clients.filter(c=>c.clientColuna).filter(c=>{
     const all=[c.clientName,c.clientMembers,c.clientTickets,c.clientObservacoes,c.clientTratativa,c.clientImplantador].join(" ").toLowerCase();
@@ -276,7 +298,16 @@ function renderClientes(){
   });
 }
 
-function updateClientColuna(id,value){ const client=clients.find(c=>c.id===id); if(client){ client.clientColuna=value; localStorage.setItem("kanbanClients", JSON.stringify(clients)); renderKanban(); renderClientes(); } }
+function updateClientColuna(id,value){
+  const client = clients.find(c => c.id === id);
+  if(client){
+    client.clientColuna = value;
+    localStorage.setItem("kanbanClients", JSON.stringify(clients));
+    saveClientToSheet(client);
+    renderKanban();
+    renderClientes();
+  }
+}
 
 showModule('cards');
 loadClientsFromSheet();
