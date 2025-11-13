@@ -158,7 +158,7 @@ function loadClientsFromSheet(){
       data.forEach(sheetClient => {
         const existing = clients.find(c=>c.clientName===sheetClient.clientName);
         if(existing){
-          Object.assign(existing, sheetClient); // Atualiza dados existentes sem criar ID novo
+          Object.assign(existing, sheetClient);
         } else {
           clients.push({...sheetClient, id: Date.now().toString()+Math.random()});
         }
@@ -170,7 +170,82 @@ function loadClientsFromSheet(){
     .catch(err=>console.error("Erro ao carregar da planilha", err));
 }
 
-// 🔹 Modal
+// 🔹 Importar Excel
+function importExcel(){
+  const file = document.getElementById("excelFile").files[0];
+  if(!file){ alert("Selecione um arquivo Excel primeiro."); return; }
+
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, {type: 'array'});
+    const sheetName = workbook.SheetNames[0];
+    const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+    sheet.forEach(row=>{
+      const clientData = {
+        id: Date.now().toString() + Math.random(),
+        clientName: row["Organização"] || "",
+        clientMembers: row["Integrantes"] || "",
+        clientStart: row["Data início"] || "",
+        clientEnd: row["Data Go live"] || "",
+        clientTickets: row["Tickets"] || "",
+        clientObservacoes: row["Observações"] || "",
+        clientTratativa: row["Tratativa"] || "",
+        clientReuniao: row["Reunião marcada?"] || "",
+        clientDataReuniao: row["Data reunião"] || "",
+        clientDivergenciaComercial: row["Divergência Comercial?"] || "",
+        clientAtrasoImplantacao: row["Atraso implantação?"] || "",
+        clientImplantador: row["Implantador"] || "",
+        clientColuna: row["Coluna"] || ""
+      };
+      clients.push(clientData);
+    });
+
+    localStorage.setItem("kanbanClients", JSON.stringify(clients));
+    renderKanban();
+    renderClientes();
+    alert("Clientes importados com sucesso!");
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// 🔹 Exportar CSV
+function exportClientesToCSV(){
+  if(clients.length === 0){ alert("Nenhum cliente para exportar."); return; }
+
+  const headers = [
+    "Organização","Integrantes","Data início","Data Go live","Tickets",
+    "Observações","Tratativa","Reunião marcada?","Data reunião",
+    "Divergência Comercial?","Atraso implantação?","Implantador","Coluna"
+  ];
+
+  const rows = clients.map(c => [
+    c.clientName, c.clientMembers, c.clientStart, c.clientEnd, c.clientTickets,
+    c.clientObservacoes, c.clientTratativa, c.clientReuniao, c.clientDataReuniao,
+    c.clientDivergenciaComercial, c.clientAtrasoImplantacao, c.clientImplantador, c.clientColuna
+  ]);
+
+  let csv = headers.join(",") + "\n" + rows.map(r => r.map(v => `"${v||""}"`).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "clientes.csv";
+  link.click();
+}
+
+// 🔹 Apagar todos
+function deleteAllClients(){
+  if(confirm("Tem certeza que deseja apagar TODOS os clientes? Essa ação não pode ser desfeita.")){
+    clients = [];
+    localStorage.removeItem("kanbanClients");
+    renderKanban();
+    renderClientes();
+    alert("Todos os clientes foram apagados com sucesso.");
+  }
+}
+
+// 🔹 Modal, salvar, editar, render etc (mantém igual ao seu)
 function openModal(client=null,isCard=true){
   editingClient=client; currentIsCard=isCard;
   document.getElementById("modal").style.display="flex";
@@ -210,7 +285,7 @@ function saveClient(isCard){
   closeModal(); renderKanban(); renderClientes();
 }
 
-// 🔹 Deletar
+// 🔹 Renderizações e atualizações (mantém igual ao seu)
 function deleteClient(id){
   if(confirm("Deseja realmente excluir este cliente?")){
     clients=clients.filter(c=>c.id!==id);
@@ -219,7 +294,6 @@ function deleteClient(id){
   }
 }
 
-// 🔹 Render Kanban
 function renderKanban(){
   const searchTerm=(searchInput?.value||"").toLowerCase();
   const columns=["risco","critico","acompanhamento","duvidas","concluido"];
@@ -235,7 +309,7 @@ function renderKanban(){
       if(card){ 
         card.clientColuna=col;
         localStorage.setItem("kanbanClients", JSON.stringify(clients));
-        saveClientToSheet(card); // atualiza na planilha
+        saveClientToSheet(card);
         renderKanban(); renderClientes(); 
       }
     });
@@ -272,7 +346,6 @@ function renderKanban(){
   });
 }
 
-// 🔹 Render Clientes
 function renderClientes(){
   const tbody=document.getElementById("clientesTableBody");
   tbody.innerHTML="";
@@ -312,6 +385,5 @@ function updateClientColuna(id,value){
 showModule('cards');
 loadClientsFromSheet();
 </script>
-
 </body>
 </html>
