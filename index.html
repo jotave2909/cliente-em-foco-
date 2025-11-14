@@ -130,12 +130,11 @@
     <button onclick="closeModal()">Cancelar</button>
   </div>
 </div>
-
 <script>
 let clients = JSON.parse(localStorage.getItem("kanbanClients") || "[]");
 let editingClient = null;
 let currentIsCard = true;
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbz_ii7VgsUnPLtNkvrcp3Q9ATIaPM_LgAEZaeoHqGoJdDLJCkbuFUFc1C2zUkiIlXRxDw/exec"; // Troque aqui
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbz_ii7VgsUnPLtNkvrcp3Q9ATIaPM_LgAEZaeoHqGoJdDLJCkbuFUFc1C2zUkiIlXRxDw/exec"; // webapi
 
 function showModule(module){
   document.getElementById('cardsModule').style.display = module==='cards'? 'block':'none';
@@ -146,9 +145,41 @@ function showModule(module){
 // 🔹 Helpers de data
 function formatDateInput(value){
   if(!value) return "";
+  // Se já for string no formato YYYY-MM-DD, retorna como está
+  if(typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  // Se for Date, monta YYYY-MM-DD sem alterar fuso (usa getFullYear/getMonth/getDate)
+  if(value instanceof Date && !isNaN(value)){
+    const y = value.getFullYear();
+    const m = String(value.getMonth()+1).padStart(2,'0');
+    const d = String(value.getDate()).padStart(2,'0');
+    return `${y}-${m}-${d}`;
+  }
+  // Tenta criar Date — pode falhar com strings sem padrão; se falhar, retorna ""
   const d = new Date(value);
   if(isNaN(d)) return "";
-  return d.toISOString().split("T")[0]; // YYYY-MM-DD
+  return d.toISOString().split("T")[0]; // fallback
+}
+
+// ✅ Formatação para exibição (evita problema de timezone)
+function formatDisplayDate(dateInput){
+  if(!dateInput) return "-";
+  // Se for string no formato YYYY-MM-DD
+  if(typeof dateInput === 'string'){
+    const m = dateInput.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if(m) return `${m[3]}/${m[2]}/${m[1]}`;
+    // Se estiver em formato dd/mm/yyyy (por acaso), retorna direto
+    const m2 = dateInput.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    if(m2) return `${m2[1]}/${m2[2]}/${m2[3]}`;
+    // fallback: tenta Date (último recurso)
+    const d = new Date(dateInput);
+    if(!isNaN(d)) return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    return "-";
+  }
+  // Se for Date object
+  if(dateInput instanceof Date && !isNaN(dateInput)){
+    return `${String(dateInput.getDate()).padStart(2,'0')}/${String(dateInput.getMonth()+1).padStart(2,'0')}/${dateInput.getFullYear()}`;
+  }
+  return "-";
 }
 
 // 🔹 Google Sheets
@@ -253,7 +284,6 @@ function exportKanbanToCSV() {
 
   downloadCSV(csv, "cards.csv");
 }
-
 // 🔹 Funções de exportação CSV (compatível com Excel PT-BR)
 function exportKanbanToCSV() {
   let csv = "Nome;Integrantes;Data Início;Go live;Tickets;Observações;Tratativa;Implantador;Coluna\n";
@@ -411,8 +441,8 @@ function renderKanban(){
         <button class="toggleBtn">Mostrar mais</button>
         <div class="details" style="display:none; margin-top:10px;">
           <p><b>Integrantes:</b> ${client.clientMembers || "-"}</p>
-          <p><b>Data início:</b> ${client.clientStart ? new Date(client.clientStart).toLocaleDateString('pt-BR') : "-"}</p>
-          <p><b>Go live:</b> ${client.clientEnd ? new Date(client.clientEnd).toLocaleDateString('pt-BR') : "-"}</p>
+          <p><b>Data início:</b> ${formatDisplayDate(client.clientStart)}</p>
+          <p><b>Go live:</b> ${formatDisplayDate(client.clientEnd)}</p>
           <p><b>Tickets:</b> ${client.clientTickets || "-"}</p>
           <p><b>Observações:</b> ${client.clientObservacoes || "-"}</p>
           <p><b>Tratativa:</b> ${client.clientTratativa || "-"}</p>
