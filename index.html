@@ -104,9 +104,6 @@
 
   <div id="clientesModule" style="display:none;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
-      <label for="excelFile" style="background:#2563eb; color:white; padding:8px 12px; border-radius:5px; cursor:pointer;">Escolher arquivo</label>
-      <input type="file" id="excelFile" accept=".xlsx, .xls" style="display:none;">
-      <button onclick="importExcel()" style="background:#2563eb; color:white; padding:8px 12px; border:none; border-radius:5px;">Importar Excel</button>
       <button onclick="exportClientesToCSV()" style="background:#2563eb; color:white; padding:8px 12px; border:none; border-radius:5px;">Exportar CSV</button>
       <button onclick="deleteAllClients()" style="background:#f44336; color:white; padding:8px 12px; border:none; border-radius:5px;">Apagar todos</button>
     </div>
@@ -235,57 +232,6 @@ function loadClientsFromSheet(){
       renderClientes();
     })
     .catch(err=>console.error("Erro ao carregar da planilha", err));
-}
-
-// 🔹 Importar Excel
-function importExcel() {
-  const file = document.getElementById("excelFile").files[0];
-  if (!file) { alert("Selecione um arquivo Excel primeiro."); return; }
-
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, { type: 'array' });
-    const sheetName = workbook.SheetNames[0];
-    const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-    sheet.forEach(row => {
-      const clientData = {
-        clientName: row["Organização"]?.trim() || "",
-        clientMembers: row["Integrantes"]?.trim() || "",
-        clientStart: formatDateInput(row["Data início"]),
-        clientEnd: formatDateInput(row["Data Go live"]),
-        clientTickets: row["Tickets"]?.trim() || "",
-        clientObservacoes: row["Observações"]?.trim() || "",
-        clientTratativa: row["Tratativa"]?.trim() || "",
-        clientReuniao: row["Reunião marcada?"]?.trim() || "",
-        clientDataReuniao: formatDateInput(row["Data reunião"]),
-        clientDivergenciaComercial: row["Divergência Comercial?"]?.trim() || "",
-        clientAtrasoImplantacao: row["Atraso implantação?"]?.trim() || "",
-        clientImplantador: row["Implantador"]?.trim() || "",
-        clientColuna: row["Coluna"]?.trim() || ""
-      };
-
-      // 🔹 Envia sempre para a planilha
-      saveClientToSheet(clientData);
-
-      // 🔹 Evita duplicidade no site
-      const existing = clients.find(c => c.clientName.trim().toLowerCase() === clientData.clientName.toLowerCase());
-      if (!existing) {
-        clientData.id = Date.now().toString() + Math.random();
-        clients.push(clientData);
-      } else {
-        Object.assign(existing, clientData);
-      }
-    });
-
-    localStorage.setItem("kanbanClients", JSON.stringify(clients));
-    renderKanban();
-    renderClientes();
-    alert("Clientes importados e enviados para a planilha com sucesso!");
-  };
-
-  reader.readAsArrayBuffer(file);
 }
 
 // 🔹 Exportar Cards para CSV
