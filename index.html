@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
   <link rel="icon" type="image/png" href="lexos_favicon.png">
+  <link rel="icon" type="image/png" href="logo_white.png">
 
 <meta charset="UTF-8">
 <title>Cliente em Foco</title>
@@ -49,9 +50,34 @@
   #searchInput, #searchClientes { padding: 6px; margin-bottom: 15px; width: 250px; border-radius: 5px; border: 1px solid #ccc; }
   table { width:100%; border-collapse: collapse; margin-top:10px; }
   th, td { border:1px solid #ccc; padding:8px; text-align:left; }
+
+  .top-right-brand {
+    position: fixed;
+    top: 32px;
+    right: 27px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #007BFF; /* mesma cor do logo */
+    z-index: 9999;
+}
+
+.top-right-brand img {
+    width: 110px;
+    height: 30px;
+}
+
 </style>
 </head>
 <body>
+
+  <div class="top-right-brand">
+    <img src="logo_white.png" alt="Lexos Logo">
+    <span></span>
+</div>
+
 
 <div id="sidebar">
   <button onclick="showModule('cards')">📋 Cards</button>
