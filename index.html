@@ -130,6 +130,7 @@
     <textarea id="clientTickets" placeholder="Tickets"></textarea>
     <textarea id="clientObservacoes" placeholder="Observações"></textarea>
     <textarea id="clientTratativa" placeholder="Tratativa"></textarea>
+    <textarea id="clientConclusao" placeholder="Conclusão"></textarea> <!-- NOVO CAMPO -->
     <select id="clientReuniao">
       <option value="">Reunião marcada?</option><option>Sim</option><option>Não</option>
     </select>
@@ -320,12 +321,14 @@ function openModal(client=null, isCard=true){
   document.getElementById("clientTickets").value = client?.clientTickets || "";
   document.getElementById("clientObservacoes").value = client?.clientObservacoes || "";
   document.getElementById("clientTratativa").value = client?.clientTratativa || "";
+  document.getElementById("clientConclusao").value = client?.clientConclusao || "";
   document.getElementById("clientReuniao").value = client?.clientReuniao || "";
   document.getElementById("clientDataReuniao").value = formatDateInput(client?.clientDataReuniao);
   document.getElementById("clientDivergenciaComercial").value = client?.clientDivergenciaComercial || "";
   document.getElementById("clientAtrasoImplantacao").value = client?.clientAtrasoImplantacao || "";
   document.getElementById("clientImplantador").value = client?.clientImplantador || "";
   document.getElementById("clientColuna").value = client?.clientColuna || "";
+  
 }
 
 function closeModal(){ document.getElementById("modal").style.display="none"; editingClient=null; }
@@ -345,7 +348,8 @@ function saveClient(isCard){
     clientDivergenciaComercial: clientDivergenciaComercial.value,
     clientAtrasoImplantacao: clientAtrasoImplantacao.value,
     clientImplantador: clientImplantador.value,
-    clientColuna: clientColuna.value
+    clientColuna: clientColuna.value,      
+    clientConclusao: clientConclusao.value  // NOVO CAMPO
   };
 
   if(editingClient){
@@ -518,3 +522,4 @@ loadClientsFromSheet();
 </script>
 </body>
 </html>
+
