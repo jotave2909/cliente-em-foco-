@@ -123,6 +123,8 @@
 <div id="modal">
   <div id="modalContent">
     <h3 id="modalTitle">Novo Cliente</h3>
+
+    <!-- Campos comuns -->
     <input type="text" id="clientName" placeholder="Organização">
     <input type="text" id="clientMembers" placeholder="Integrantes">
     <input type="date" id="clientStart" placeholder="Data de início">
@@ -130,7 +132,7 @@
     <textarea id="clientTickets" placeholder="Tickets"></textarea>
     <textarea id="clientObservacoes" placeholder="Observações"></textarea>
     <textarea id="clientTratativa" placeholder="Tratativa"></textarea>
-    <textarea id="clientConclusao" placeholder="Conclusão"></textarea> <!-- NOVO CAMPO -->
+    <textarea id="clientConclusao" placeholder="Conclusão"></textarea>
     <select id="clientReuniao">
       <option value="">Reunião marcada?</option><option>Sim</option><option>Não</option>
     </select>
@@ -150,10 +152,18 @@
       <option value="duvidas">Dúvidas</option>
       <option value="concluido">Concluído</option>
     </select>
+
+    <!-- Campos extras só para módulo Clientes -->
+    <div id="clientesExtraFields" style="display:none;">
+      <textarea id="clientComunicacao" placeholder="Comunicação"></textarea>
+      <input type="text" id="clientCSM" placeholder="CSM">
+    </div>
+
     <button onclick="saveClient(currentIsCard)">Salvar</button>
     <button onclick="closeModal()">Cancelar</button>
   </div>
 </div>
+
 <script>
 let clients = JSON.parse(localStorage.getItem("kanbanClients") || "[]");
 let editingClient = null;
@@ -311,9 +321,11 @@ function downloadCSV(csvContent, fileName) {
 function openModal(client=null, isCard=true){
   editingClient = client;
   currentIsCard = isCard;
+
   document.getElementById("modal").style.display = "flex";
   document.getElementById("modalTitle").innerText = client ? "Editar Cliente" : "Novo Cliente";
 
+  // Campos comuns
   document.getElementById("clientName").value = client?.clientName || "";
   document.getElementById("clientMembers").value = client?.clientMembers || "";
   document.getElementById("clientStart").value = formatDateInput(client?.clientStart);
@@ -328,8 +340,18 @@ function openModal(client=null, isCard=true){
   document.getElementById("clientAtrasoImplantacao").value = client?.clientAtrasoImplantacao || "";
   document.getElementById("clientImplantador").value = client?.clientImplantador || "";
   document.getElementById("clientColuna").value = client?.clientColuna || "";
-  
+
+  // Campos extras (só para módulo Clientes)
+  const extraFields = document.getElementById("clientesExtraFields");
+  if(!isCard){
+    extraFields.style.display = "block";
+    document.getElementById("clientComunicacao").value = client?.clientComunicacao || "";
+    document.getElementById("clientCSM").value = client?.clientCSM || "";
+  } else {
+    extraFields.style.display = "none";
+  }
 }
+
 
 function closeModal(){ document.getElementById("modal").style.display="none"; editingClient=null; }
 
@@ -348,8 +370,10 @@ function saveClient(isCard){
     clientDivergenciaComercial: clientDivergenciaComercial.value,
     clientAtrasoImplantacao: clientAtrasoImplantacao.value,
     clientImplantador: clientImplantador.value,
-    clientColuna: clientColuna.value,      
-    clientConclusao: clientConclusao.value  // NOVO CAMPO
+    clientColuna: clientColuna.value,
+    clientConclusao: clientConclusao.value,
+    clientComunicacao: isCard ? undefined : clientComunicacao.value,
+    clientCSM: isCard ? undefined : clientCSM.value
   };
 
   if(editingClient){
@@ -365,6 +389,7 @@ function saveClient(isCard){
   renderKanban();
   renderClientes();
 }
+
 
 // 🔹 Renderizações
 function deleteClient(id){
@@ -522,4 +547,5 @@ loadClientsFromSheet();
 </script>
 </body>
 </html>
+
 
