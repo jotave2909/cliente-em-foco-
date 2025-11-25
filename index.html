@@ -343,14 +343,15 @@ function openModal(client=null, isCard=true){
 
   // Campos extras (só para módulo Clientes)
   const extraFields = document.getElementById("clientesExtraFields");
-  if(!isCard){
+if(!isCard || (isCard && client)){ // Clientes ou Card em edição
     extraFields.style.display = "block";
     document.getElementById("clientComunicacao").value = client?.clientComunicacao || "";
     document.getElementById("clientCSM").value = client?.clientCSM || "";
-  } else {
+} else {
     extraFields.style.display = "none";
-  }
-}
+    document.getElementById("clientComunicacao").value = "";
+    document.getElementById("clientCSM").value = "";
+}}
 
 
 function closeModal(){ document.getElementById("modal").style.display="none"; editingClient=null; }
