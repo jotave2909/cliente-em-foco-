@@ -373,8 +373,8 @@ function saveClient(isCard){
     clientImplantador: clientImplantador.value,
     clientColuna: clientColuna.value,
     clientConclusao: clientConclusao.value,
-    clientComunicacao: isCard ? undefined : clientComunicacao.value,
-    clientCSM: isCard ? undefined : clientCSM.value
+    clientComunicacao: clientComunicacao.value,
+    clientCSM: clientCSM.value
   };
 
   if(editingClient){
